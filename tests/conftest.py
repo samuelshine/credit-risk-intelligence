@@ -23,6 +23,37 @@ from src.talk_to_data.catalog import Catalog, ColumnInfo, TableInfo
 
 _ENV_KEYS = ("DUCKDB_PATH", "DATA_DIR", "DUCKDB_MEMORY_LIMIT")
 
+#: Every environment variable any fixture in this suite mutates. Restored
+#: after each test by `_restore_environment` below.
+_ALL_MUTATED_ENV_KEYS = (
+    "DUCKDB_PATH", "DATA_DIR", "DUCKDB_MEMORY_LIMIT", "MODELS_DIR",
+    "GOOGLE_API_KEY", "AUTO_INGEST_ON_STARTUP", "DATA_MODE",
+)
+
+
+@pytest.fixture(autouse=True)
+def _restore_environment():
+    """Snapshot and restore config env vars around every test.
+
+    Autouse and suite-wide rather than fixed per-fixture, because leaked env
+    state is invisible until some unrelated test fails for a reason that has
+    nothing to do with it. That happened for real: `test_api.py`'s fixtures
+    set `GOOGLE_API_KEY=""` to exercise the no-key degradation paths and did
+    not restore it, so `test_gemini_live.py` - which runs later and needs a
+    real key - failed with LLMUnavailable in a full-suite run while passing
+    on its own. Restoring centrally means a future fixture that mutates one
+    of these cannot reintroduce that class of bug.
+    """
+    saved = {key: os.environ.get(key) for key in _ALL_MUTATED_ENV_KEYS}
+    yield
+    for key, value in saved.items():
+        if value is None:
+            os.environ.pop(key, None)
+        else:
+            os.environ[key] = value
+    from src.utils.config import get_settings
+    get_settings.cache_clear()
+
 
 @pytest.fixture
 def isolated_db(tmp_path_factory) -> Iterator[duckdb.DuckDBPyConnection]:
