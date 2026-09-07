@@ -1,0 +1,13 @@
+# Development / training-time extras. Not installed into the runtime image.
+-r requirements.txt
+
+# Notebook authoring. notebooks/eda.ipynb is jupytext-paired to notebooks/eda.py,
+# so the .py stays a readable, diffable mirror of the notebook.
+jupytext==1.19.5
+notebook==7.6.2
+ipykernel==7.3.0
+
+# Tests
+pytest==9.1.1
+pytest-asyncio==1.4.0
+httpx==0.28.1
