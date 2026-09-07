@@ -61,8 +61,8 @@ a real command executed, real output inspected) — not on "written but untested
 - [x] `src/eda/charts.py` — matplotlib rendering, saved to `models/charts/*.png` (9 charts)
 - [x] `models/eda_artifacts.json` — precomputed figures the API serves
 - [x] `scripts/build_eda_artifacts.py` — regenerates both from the live database
-- [ ] `notebooks/eda.py` (jupytext light-format) importing `src.eda.analysis`
-- [ ] pair `notebooks/eda.py` ↔ `notebooks/eda.ipynb` via jupytext, execute once, save outputs
+- [x] `notebooks/eda.py` (jupytext light-format) importing `src.eda.analysis`
+- [x] pair `notebooks/eda.py` ↔ `notebooks/eda.ipynb` via jupytext, executed against the real database with outputs saved (17 cells, 0 errors, 8 embedded charts)
 - [x] `docs/EDA_FINDINGS.md` — all 8 insights written up with real numbers and chart references
 - [x] unit tests for `src/eda/analysis.py` — 12 tests including 2 regression tests for real bugs found (backwards lift ratio, false monotonicity assumption)
 

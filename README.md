@@ -135,6 +135,30 @@ The trained model and every derived artifact are **committed to the repo** (`.gi
 
 Those last two return a clear 503 rather than crashing the app, and start working on the next request once `etl` finishes — no restart. This is why the compose file deliberately does not make `api` depend on `etl` succeeding.
 
+### Readiness is a marker, not file existence
+
+`database_exists()` checks for a `.ready` marker written only after a full, row-count-verified ETL run — not for the `.duckdb` file. DuckDB creates that file the instant a connection opens, long before the tables are populated. Checking the file was a real bug: a request arriving during a rebuild got a raw 500 (`CatalogException: bureau_balance does not exist`) because readiness had already reported true. The marker is cleared at the start of every build and written at the end, so mid-build the honest answer is "not ready" — and an interrupted build no longer looks complete to the next run.
+
+---
+
+## Deploying to Render
+
+`render.yaml` is a Blueprint for a **single** web service. Push the repo, then open:
+
+```
+https://dashboard.render.com/blueprint/new?repo=https://github.com/samuelshine/credit-risk-intelligence
+```
+
+Fill in `GOOGLE_API_KEY` and `KAGGLE_API_TOKEN` (both `sync: false`) and apply.
+
+One service rather than the two compose runs, because Render attaches a persistent disk to a single instance and does not mount it during build — there is no companion container that could run the ETL against the same disk. So the API ingests for itself: `AUTO_INGEST_ON_STARTUP=true` makes it build the database in a background **thread** on first boot (a thread, not an asyncio task — `build_database()` is blocking DuckDB work that would stall every request on the event loop). `/health` answers immediately throughout, which is what stops Render's health check from killing the container mid-ingest.
+
+That flag defaults to `false` so it never races compose's dedicated `etl` service.
+
+**Sizing, stated plainly:** this needs a paid `standard` instance (2 GB RAM) plus a 15 GB disk. The free and starter tiers are 512 MB and will be OOM-killed during ingestion, and free instances have no persistent disk at all, so the database would be rebuilt from scratch on every restart. First boot takes 4–8 minutes (2.7 GB download, then ~80 s ingest). If you would rather not pay for a hosted instance, `docker compose up` gives an identical app locally, and the committed artifacts mean a reviewer can exercise most of it with no dataset and no cost.
+
+Full details, trade-offs and the local paths: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
+
 ---
 
 ## Model selection and class imbalance
@@ -449,11 +473,17 @@ credit-risk-intelligence/
 │   ├── MODEL_CARD.md            # every ML number, traced to a models/*.json artifact
 │   ├── EDA_FINDINGS.md          # 8 insights with real figures and chart references
 │   ├── DESIGN.md                # UI token system and rationale
+│   ├── PROMPTS.md               # prompt templates, measured token optimisation, hallucination control
+│   ├── DEPLOYMENT.md            # Docker + Render, sizing, trade-offs
 │   ├── TASKS.md                 # full phase-by-phase backlog
-│   └── PROGRESS.md              # build state, and the 15 real bugs found along the way
+│   └── PROGRESS.md              # build state, and the real bugs found along the way
+├── documents/
+│   └── project_presentation.pdf # the use-case deck with output screenshots
 ├── notebooks/                   # (jupytext-paired EDA notebook: not done — see limitations)
 ├── Dockerfile                   # multi-stage, non-root, one image for both compose services
 ├── docker-compose.yml           # etl (one-shot) + api (uvicorn, healthchecked)
+├── render.yaml                  # Render Blueprint: single service, background ingest on first boot
+├── .dockerignore                # keeps the 2.7 GB dataset out of the build context
 ├── .env.example                 # every configurable, documented
 └── requirements.txt / requirements-dev.txt
 ```
