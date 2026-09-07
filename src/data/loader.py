@@ -31,7 +31,9 @@ import duckdb
 
 from src.data.acquire import SOURCE_FILES, SourceFile, ensure_dataset
 from src.data.database import (
+    clear_database_ready,
     database_exists,
+    mark_database_ready,
     list_tables,
     table_row_counts,
     writable_connection,
@@ -332,6 +334,8 @@ def build_database(
         Path(settings.duckdb_path).unlink()
         log.info("removed existing database for a clean rebuild")
 
+    clear_database_ready(settings)
+
     log.info("building DuckDB (%s mode) at %s",
              "lite" if lite else "full", settings.duckdb_path)
 
@@ -359,6 +363,12 @@ def build_database(
 
         dump_schema(conn, PROJECT_ROOT / "sql" / "schema.sql")
         counts = table_row_counts(conn)
+
+    # Written only after the writable connection above has closed (so the
+    # file is fully flushed) and every check has passed - see
+    # database_exists()'s docstring for why this, not file existence, is
+    # what every reader actually checks before querying.
+    mark_database_ready(settings)
 
     size_gb = Path(settings.duckdb_path).stat().st_size / 1e9
     log.info(

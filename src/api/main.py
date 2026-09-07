@@ -16,6 +16,7 @@ mid-ingest.
 
 from __future__ import annotations
 
+import threading
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -26,7 +27,7 @@ from src.api.schemas import HealthResponse
 from src.data.database import database_exists
 from src.llm.gemini import get_llm_client
 from src.ml.predict import get_risk_model
-from src.utils.config import get_settings
+from src.utils.config import Settings, get_settings
 from src.utils.logger import configure_logging, get_logger
 
 log = get_logger(__name__)
@@ -35,11 +36,44 @@ log = get_logger(__name__)
 UI_DIR = Path(__file__).resolve().parents[2] / "ui"
 
 
+def _ingest_in_background(settings: Settings) -> None:
+    """Build the database in a daemon thread, without blocking startup.
+
+    Only used where there is no companion `etl` container to do it - Render
+    runs a single web service, so the API has to ingest for itself (see
+    `Settings.auto_ingest_on_startup`).
+
+    A thread rather than an asyncio task because `build_database()` is
+    blocking, CPU- and IO-bound DuckDB work; on the event loop it would stall
+    every request for the duration, which is the exact opposite of the point.
+    Failures are logged and swallowed: a platform health check must keep
+    getting a 200 from `/health` even if ingestion fails, and every
+    DB-dependent route already degrades to a clear 503 on its own.
+    """
+    def run() -> None:
+        from src.data.loader import build_database
+
+        try:
+            log.info("no database found; starting background ingestion")
+            build_database(settings)
+            log.info("background ingestion finished; database is ready")
+        except Exception:
+            log.exception(
+                "background ingestion failed - the API stays up, but the "
+                "chatbot and applicant lookup will report 503 until a "
+                "database exists"
+            )
+
+    threading.Thread(target=run, name="etl", daemon=True).start()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     configure_logging()
     settings = get_settings()
     log.info("starting API: %s", settings.describe())
+    if settings.auto_ingest_on_startup and not database_exists(settings):
+        _ingest_in_background(settings)
     yield
     log.info("shutting down API")
 

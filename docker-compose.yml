@@ -1,0 +1,65 @@
+# Credit Risk Intelligence Platform
+#
+#   cp .env.example .env   # fill in GOOGLE_API_KEY and (optionally) KAGGLE_API_TOKEN
+#   docker compose up
+#
+# Two services from one image (see Dockerfile):
+#
+#   etl  - runs once, builds the DuckDB database from the Kaggle CSVs, then
+#          exits. Needs KAGGLE_API_TOKEN in .env, or a manually downloaded
+#          home-credit-default-risk.zip placed in ./data/ before starting.
+#   api  - the FastAPI service + UI, on :8000.
+#
+# `api` does NOT wait on `etl` to succeed. This is deliberate: the model,
+# rules, and EDA artifacts this repo ships are already trained/computed and
+# committed (see .gitignore's negated `models/*` entries), so scoring a
+# hand-entered applicant, reading "Why this score", "Policy rules" and "The
+# portfolio" all work immediately - only picking a *real* applicant by id and
+# "Ask the data" need the live database `etl` builds. If `etl` has not
+# finished (or has no credentials configured), those two routes return a
+# clear 503 rather than the app failing to start; once `etl` completes, they
+# start working on the next request with no restart needed.
+
+services:
+  etl:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: credit-risk-platform:latest
+    command: ["python", "-m", "src.data.loader"]
+    env_file:
+      - .env
+    environment:
+      DATA_MODE: ${DATA_MODE:-full}
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+    restart: "no"
+
+  api:
+    # No `build:` here on purpose: both services share one image
+    # (see the Dockerfile's docstring), and giving both a `build:` block
+    # under Compose v2's parallel builder made them race to export and tag
+    # `credit-risk-platform:latest` at the same time - confirmed against
+    # Docker Compose v5.0.0, where the second export failed with "image ...
+    # already exists". `etl` builds and tags the image; `api` just runs it.
+    # `docker compose up` builds automatically on first run; after that,
+    # `docker compose build` (or `up --build`) rebuilds it for both.
+    image: credit-risk-platform:latest
+    command: ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    env_file:
+      - .env
+    environment:
+      DATA_MODE: ${DATA_MODE:-full}
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped

@@ -1,0 +1,30 @@
+# Never ship the dataset or a local venv into the build context - the
+# dataset alone is 2.7 GB and would make every `docker build` slow and
+# fragile regardless of layer caching.
+data/
+.venv/
+venv/
+
+# Committed model artifacts ARE needed inside the image (so a fresh
+# `docker compose up` can score an applicant without training first) and
+# are intentionally NOT excluded here - only the regenerable ones are.
+models/charts/*.pdf
+
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+.git/
+.github/
+*.md
+!README.md
+
+.env
+.env.local
+kaggle.json
+access_token
+
+.DS_Store
+.idea/
+.vscode/

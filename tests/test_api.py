@@ -110,6 +110,14 @@ def trained_client(tmp_path):
             "SELECT * EXCLUDE (TARGET) FROM application_train WHERE 1=0"
         )
 
+    # This fixture builds tables directly rather than through
+    # src.data.loader.build_database(), which is the only place that
+    # normally calls this - database_exists() now means "a full ETL run
+    # completed", not just "the file is there" (see its docstring), so
+    # routes gating on it need this marker set explicitly here too.
+    from src.data.database import mark_database_ready
+    mark_database_ready()
+
     from src.eda.analysis import build_eda_artifacts
     from src.eda.charts import render_all
     from src.utils.helpers import write_json

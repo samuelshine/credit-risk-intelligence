@@ -66,10 +66,50 @@ def _apply_pragmas(conn: duckdb.DuckDBPyConnection, settings: Settings) -> None:
     conn.execute("SET preserve_insertion_order=false")
 
 
-def database_exists(settings: Settings | None = None) -> bool:
-    """True when the DuckDB file has been built."""
+def _ready_marker_path(settings: Settings) -> Path:
+    """Sentinel written only after a full, successful ETL run.
+
+    Deliberately not the same signal as "the .duckdb file exists": DuckDB
+    creates that file the moment a connection opens, long before every table
+    is loaded. Measured against a real concurrent run - the Render first-boot
+    scenario this exists for - a request arriving while `etl` is mid-build
+    hit a `CatalogException` ("bureau_balance does not exist") and surfaced
+    as a raw 500, because `database_exists()` had already returned true. The
+    marker is the fix: written once, after `_verify_row_counts` and
+    `dump_schema` both succeed, so its presence is a real completeness
+    guarantee rather than a guess from file existence.
+    """
+    return Path(settings.duckdb_path).with_suffix(".ready")
+
+
+def mark_database_ready(settings: Settings | None = None) -> None:
+    """Called once, at the end of a successful `build_database()`."""
     settings = settings or get_settings()
-    return Path(settings.duckdb_path).exists()
+    _ready_marker_path(settings).touch()
+
+
+def clear_database_ready(settings: Settings | None = None) -> None:
+    """Called before a (re)build starts.
+
+    From this point until `mark_database_ready()` runs, `database_exists()`
+    must report false for every caller - a crash partway through a forced
+    rebuild must never leave a stale marker pointing at an incomplete
+    database. `missing_ok=True` since a fresh build has no marker to clear.
+    """
+    settings = settings or get_settings()
+    _ready_marker_path(settings).unlink(missing_ok=True)
+
+
+def database_exists(settings: Settings | None = None) -> bool:
+    """True once a full ETL run has completed successfully.
+
+    Named for what every caller actually wants to know - "is the database
+    safe to query" - even though what it checks is the completion marker,
+    not (only) the file. Kept as one function rather than two so a caller can
+    never accidentally pick the weaker, file-existence-only check.
+    """
+    settings = settings or get_settings()
+    return _ready_marker_path(settings).exists()
 
 
 @contextmanager

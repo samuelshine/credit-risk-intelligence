@@ -45,6 +45,14 @@ class Settings(BaseSettings):
     kaggle_api_token: str = ""
     data_mode: str = "full"
 
+    #: Have the API build the database itself, in a background thread, when it
+    #: starts and finds none. Off by default because docker-compose runs a
+    #: dedicated `etl` service for exactly this, and having both do it would
+    #: race two concurrent builds over one file. Turned on for single-service
+    #: platforms (Render) where there is no companion container to run the
+    #: ETL - see render.yaml and docs/DEPLOYMENT.md.
+    auto_ingest_on_startup: bool = False
+
     # -- Paths ----------------------------------------------------------------
     data_dir: Path = Path("/app/data")
     duckdb_path: Path = Path("/app/data/credit_risk.duckdb")
