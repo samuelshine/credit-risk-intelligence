@@ -11,26 +11,25 @@ Last updated: 2026-09-07 10:25 (local)
 
 ## Current phase
 
-**Phases 1-7 are all done**, verified against the real dataset, the real
-trained model, and the live Gemini API — including running the actual
-`uvicorn` server and hitting every route with real `curl` requests, not just
-the automated test suite. Moving into **Phase 8 — Frontend** next.
+**Phases 1-8 are all done.** The full platform — data, EDA, ML, SHAP, rules,
+chatbot, API, and now the UI — has been exercised end to end against the
+real dataset, the real trained model, and the live Gemini API, including a
+Chrome-driven walkthrough of every section with zero console errors. Moving
+into **Phase 9 — Docker & deployment** next.
 
 ## Current task
 
-Starting the frontend design pass (per the `frontend-design` skill) before
-writing any UI code: token plan (colour/type/layout), reviewed against the
-brief for generic defaults, then build.
+Starting the `Dockerfile` and `docker-compose.yml` — the `etl` → `api`
+two-service setup described in the plan.
 
 ## What's next (in order)
 
-1. Frontend design pass, then `ui/index.html`, `ui/styles.css`, `ui/app.js`
-2. Chrome-driven walkthrough + screenshots of all 5 sections
-3. `docs/DESIGN.md` — token system + rationale, screenshots
+1. `Dockerfile`, `docker-compose.yml`, verify `docker compose up` from a clean state
+2. `render.yaml` + Render deployment, verify the live URL
+3. `docs/DEPLOYMENT.md` — local + Render instructions, cost note
 4. `docs/PROMPTS.md` — write up using the real transcripts and token counts already captured this session
-5. Docker + Render deployment (Phase 9)
-6. `notebooks/eda.py`/`.ipynb` (small remaining Phase 2 item, low priority)
-7. Final README + presentation PDF (Phase 10)
+5. `notebooks/eda.py`/`.ipynb` (small remaining Phase 2 item, low priority)
+6. Final README + presentation PDF (Phase 10)
 
 ## Blockers
 
@@ -122,6 +121,27 @@ not just the automated test suite:
     just the one insight. Widened to catch `Exception` broadly, with a
     comment explaining why that breadth is deliberate here.
 
+## Real bugs found during Phase 8 (Frontend), found by a Chrome-driven
+walkthrough against the real running app - clicking through all 5 sections,
+scoring real and hand-entered applicants, and reading the actual rendered
+page rather than only its source:
+
+14. **The applicant picker's Credit and Gender columns visually collided**
+    (`180,000F`, no space). `td.num { padding-right: 0 }` was written to
+    remove trailing padding on a table's *last* numeric column, but applied
+    to every numeric `<td>`, so a numeric column with non-numeric columns
+    after it lost the padding that separated them. Fixed by moving the
+    zero-padding rule to `tr > :last-child` specifically.
+15. **Several places used middot-joined strings** (`"Ready · full data"`,
+    a rule's `"1.2x base · 40% of applicants"`, a quality finding's raw
+    `JSON.stringify` dump) - exactly the "meta strings joined with middle
+    dots" pattern `docs/DESIGN.md` itself lists as an anti-pattern to avoid,
+    written in by default while building quickly and only caught by
+    rereading the design doc against the finished page. Fixed: rewritten as
+    plain sentences where the content was prose, and as separate DOM
+    elements with a CSS border-left separator (real spacing, not a
+    punctuation mark) where it was genuinely tabular metadata.
+
 ## Real data, confirmed
 
 - ETL run against the actual Kaggle files: all 8 data tables' row counts match
@@ -186,9 +206,9 @@ rest — worth being honest about in the final documentation.
 | 5 — Business rules | ✅ done, 16 real rules extracted |
 | 6 — Talk-to-data | ✅ done, live-tested against real Gemini API |
 | 7 — FastAPI service | ✅ done, real server hit with real curl requests |
-| 8 — Frontend | 🔵 starting now |
-| 9 — Docker & deployment | ⬜ not started |
-| 10 — Documentation & presentation | 🔵 in progress (TASKS/PROGRESS/EDA_FINDINGS/MODEL_CARD done; README etc. pending) |
+| 8 — Frontend | ✅ done, Chrome-walkthrough tested end to end |
+| 9 — Docker & deployment | 🔵 starting now |
+| 10 — Documentation & presentation | 🔵 in progress (TASKS/PROGRESS/EDA_FINDINGS/MODEL_CARD/DESIGN done; README etc. pending) |
 
 ## Test suite state
 

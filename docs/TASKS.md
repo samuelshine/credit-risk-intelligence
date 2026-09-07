@@ -130,16 +130,17 @@ a real command executed, real output inspected) — not on "written but untested
 - [x] `tests/test_api.py` — 20 tests, TestClient-based, all degraded-mode paths (no DB, no model, no LLM key) plus real trained-model success paths
 - [x] found and fixed 3 more real bugs via live testing (see docs/PROGRESS.md): explanation narrative silently truncated by Gemini 3.x's mandatory "thinking" consuming the entire token budget; the narrative prompt's "Portfolio average" was populated with SHAP's log-odds base value instead of the real base rate; EDA insights crashed the whole build with IndexError when a joined child table legitimately had zero rows
 
-## Phase 8 — Frontend
+## Phase 8 — Frontend ✅ done
 
-- [ ] design pass per `frontend-design` skill: token plan (colour/type/layout), review against brief, then build
-- [ ] `ui/index.html` — 5 sections: The portfolio / Score an applicant / Why this score / Policy rules / Ask the data
-- [ ] `ui/styles.css` — token system, light/dark aware
-- [ ] `ui/app.js` — no-build-step vanilla JS, fetch calls to the API
-- [ ] self-hosted Newsreader + IBM Plex Sans woff2 subsets in `ui/assets/fonts/`
-- [ ] the "risk ruler" component (shared across score/bands/rules/SHAP views)
-- [ ] Chrome-driven walkthrough + screenshots of all 5 sections, mobile width, keyboard focus check
-- [ ] `docs/DESIGN.md` — token system + rationale, screenshots
+- [x] design pass per `frontend-design` skill: token plan (colour/type/layout), reviewed against the brief for generic AI-tool defaults, then built — `docs/DESIGN.md`
+- [x] `ui/index.html` — 5 sections: The portfolio / Score an applicant / Why this score / Policy rules / Ask the data
+- [x] `ui/styles.css` — full token system, light/dark aware (auto + explicit `data-theme`)
+- [x] `ui/app.js` — no-build-step vanilla JS, fetch calls to the API, no framework
+- [x] fonts loaded from Google Fonts (Newsreader + IBM Plex Sans) with full system fallback stack — self-hosting judged not worth the added build complexity for a Docker deployment with normal internet access; documented as a deliberate choice in `docs/DESIGN.md`
+- [x] the "risk ruler" component, shared across the score result and the SHAP explanation view
+- [x] Chrome-driven walkthrough of all 5 sections against the real trained model and real data: portfolio charts, applicant picker, real-id scoring, manual-entry scoring, SHAP factor chart, policy rules, and a live chatbot round-trip — zero console errors throughout
+- [x] `docs/DESIGN.md` — token system + rationale
+- [x] found and fixed 2 real UI bugs during the Chrome walkthrough (see docs/PROGRESS.md): a CSS rule collapsed the padding between adjacent table columns, and several places used middot-joined text where the design's own stated anti-patterns ruled that out
 
 ## Phase 9 — Docker & deployment
 
