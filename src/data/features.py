@@ -255,7 +255,20 @@ class FeatureMatrix:
 
 
 def build_feature_sql(source_table: str = "application_train") -> str:
-    """Assemble the full feature query for one application table."""
+    """Assemble the full feature query for one application table.
+
+    Ends with `ORDER BY app.SK_ID_CURR`, which is not cosmetic: DuckDB gives
+    no row-order guarantee for a query without one, particularly with
+    multiple LEFT JOINs and parallel execution. Without it, two runs of this
+    exact query can return rows in different orders - and since
+    `sklearn.train_test_split(..., random_state=42)` splits by *position*,
+    not by id, an unordered result silently makes "the same random_state"
+    produce a *different* train/holdout split every run. That surfaced as a
+    real bug: a holdout evaluation reconstructed from a fresh query call
+    scored the model at ROC-AUC 0.855 against the 0.785 the original training
+    run measured on its own (correctly ordered, in-process) split - the
+    mismatch was rows leaking across the split rather than a modelling issue.
+    """
     joins = "\n".join(
         f"LEFT JOIN ({sql.strip()}) {alias} ON {alias}.SK_ID_CURR = app.SK_ID_CURR"
         for alias, sql in AGGREGATES.items()
@@ -271,6 +284,7 @@ SELECT
     {aggregate_columns}
 FROM {source_table} app
 {joins}
+ORDER BY app.SK_ID_CURR
 """
 
 

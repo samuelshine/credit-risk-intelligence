@@ -1,0 +1,13 @@
+{
+  "rows_trained": 307511,
+  "n_features": 205,
+  "base_rate": 0.08072881945686496,
+  "baseline_pr_auc": 0.25183,
+  "chosen_imbalance_strategy": "none",
+  "holdout_roc_auc": 0.78989,
+  "holdout_pr_auc": 0.27939,
+  "holdout_brier_raw": 0.0656,
+  "holdout_brier_calibrated": 0.06537,
+  "operating_threshold": 0.0935,
+  "training_seconds": 265.7
+}

@@ -1,0 +1,23 @@
+{
+  "base_rate": 0.0807,
+  "bands": {
+    "High": {
+      "score_threshold": 0.1878,
+      "population_share": 0.1,
+      "default_rate": 0.2989,
+      "lift_over_base_rate": 3.7
+    },
+    "Medium": {
+      "score_threshold": 0.0449,
+      "population_share": 0.4,
+      "default_rate": 0.097,
+      "lift_over_base_rate": 1.2
+    },
+    "Low": {
+      "score_threshold": 0.0,
+      "population_share": 0.5,
+      "default_rate": 0.0241,
+      "lift_over_base_rate": 0.3
+    }
+  }
+}

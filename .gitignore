@@ -19,6 +19,10 @@
 !/models/rules.json
 !/models/metrics.json
 !/models/eda_artifacts.json
+!/models/threshold.json
+!/models/imbalance_comparison.json
+!/models/train_summary.json
+!/models/shap_global.json
 !/models/charts/
 /models/charts/*.pdf
 

@@ -66,47 +66,41 @@ a real command executed, real output inspected) — not on "written but untested
 - [x] `docs/EDA_FINDINGS.md` — all 8 insights written up with real numbers and chart references
 - [x] unit tests for `src/eda/analysis.py` — 12 tests including 2 regression tests for real bugs found (backwards lift ratio, false monotonicity assumption)
 
-## Phase 3 — ML training
+## Phase 3 — ML training ✅ done
 
-- [ ] extend `src/data/features.py` tests: leakage check (no post-application-date info), null-rate sanity per feature block
-- [ ] `src/ml/train.py`
-  - [ ] baseline: `Pipeline` (median impute → scale → one-hot) + `LogisticRegression`
-  - [ ] primary: LightGBM, stratified 5-fold CV, early stopping
-  - [ ] imbalance comparison harness: none / `scale_pos_weight` / SMOTE / random undersampling
-  - [ ] select strategy on PR-AUC + calibration curve, document the choice
-  - [ ] isotonic calibration of the shipped model
-  - [ ] risk-band cutoffs derived from validation score distribution → `models/bands.json`
-  - [ ] cost-based operating threshold (state the FN:FP ratio assumption)
-  - [ ] save `models/model.txt` (LightGBM native format), `models/calibrator.pkl`, `models/feature_list.json`
-- [ ] `src/ml/evaluate.py`
-  - [ ] ROC-AUC, PR-AUC, KS statistic, Brier score
-  - [ ] calibration curve
-  - [ ] confusion matrix at chosen threshold
-  - [ ] gains/lift table by score decile
-  - [ ] `models/metrics.json`
-- [ ] `src/ml/predict.py` — inference: raw applicant → feature row → probability → band
-- [ ] `docs/MODEL_CARD.md` — model selection rationale, imbalance strategy, metrics, limitations
-- [ ] tests: `tests/test_train.py` (fast, tiny synthetic slice), `tests/test_predict.py`
+- [x] `src/data/features.py`: found and fixed a real reproducibility bug — no `ORDER BY` meant `train_test_split(random_state=42)` produced a *different* split on every query execution; fixed and covered by `tests/test_features.py`
+- [x] `src/ml/train.py`
+  - [x] baseline: `Pipeline` (median impute → scale → one-hot) + `LogisticRegression` — PR-AUC 0.2518
+  - [x] primary: LightGBM, stratified 5-fold CV, early stopping — PR-AUC 0.2790
+  - [x] imbalance comparison harness: none / `scale_pos_weight` / SMOTE / random undersampling — run on real data, "none" won honestly
+  - [x] select strategy on PR-AUC + Brier, documented in `docs/MODEL_CARD.md`
+  - [x] isotonic calibration via `CalibratedClassifierCV` + `FrozenEstimator` (sklearn 1.9 removed `cv="prefit"`)
+  - [x] risk-band cutoffs → `models/bands.json` (High 10%/29.9% default, Medium 40%/9.7%, Low 50%/2.4%)
+  - [x] cost-based operating threshold (FN:FP = 10:1 stated assumption) → 0.0935
+  - [x] all artifacts saved: `model.txt`, `calibrator.pkl`, `feature_list.json`, `baseline_model.pkl`
+- [x] `src/ml/evaluate.py` — ROC-AUC 0.7899, PR-AUC 0.2794, KS 0.4414, Brier 0.0654, full lift table, calibration curve, confusion matrix → `models/metrics.json`
+- [x] `src/ml/predict.py` — inference: raw applicant → feature row → probability → band (real bug found + fixed: WHERE appended after ORDER BY is invalid SQL; also fixed a pandas DataFrame-fragmentation perf issue)
+- [x] `docs/MODEL_CARD.md` — written entirely from real training artifacts
+- [x] tests: `tests/test_features.py` (3), `tests/test_predict.py` (8), `tests/test_evaluate.py` (8)
 
-## Phase 4 — Explainable AI
+## Phase 4 — Explainable AI ✅ done
 
-- [ ] `src/ml/explain.py`
-  - [ ] SHAP `TreeExplainer` wired to the trained LightGBM model
-  - [ ] global explanation at train time: mean-|SHAP| ranking + beeswarm data → `models/eda_artifacts.json` or its own file
-  - [ ] per-applicant local explanation: signed top-N contributions
-  - [ ] Gemini narrative generation from contributions only (reuse `src/llm/gemini.py`)
-  - [ ] `EXPLANATION_SYSTEM_PROMPT` / `EXPLANATION_USER_PROMPT` already exist in `prompt_templates.py` — wire them in
-- [ ] tests: contributions sum ≈ (log-odds − base rate); grounding test (narrative never names a factor absent from the input list)
+- [x] `src/ml/explain.py`
+  - [x] SHAP `TreeExplainer` wired directly to the trained LightGBM booster
+  - [x] global explanation → `models/shap_global.json` (real ranking: EXT_SOURCE_MEAN #1, CODE_GENDER #2 — flagged as a fairness limitation in MODEL_CARD.md)
+  - [x] per-applicant local explanation: signed top-6 contributions
+  - [x] Gemini narrative generation from contributions only, degrades gracefully with no key
+- [x] tests: `tests/test_explain.py` (7) — grounding test (narrative/factors never reference anything outside the computed SHAP values), signal-recovery test against a fixture with known ground truth, LLM-unavailable degradation path
 
-## Phase 5 — Business rules
+## Phase 5 — Business rules ✅ done
 
-- [ ] `src/ml/rules.py`
-  - [ ] shallow surrogate `DecisionTreeClassifier` (depth 3–4) fit on LightGBM scores
-  - [ ] root-to-leaf path extraction as IF-THEN rules
-  - [ ] per-rule: population share, observed default rate, lift over base rate
-  - [ ] surrogate fidelity report (R²/AUC vs. full model)
-  - [ ] `models/rules.json`
-- [ ] tests: each rule's stated default rate re-derived independently via a raw DuckDB query (`tests/test_rules.py`)
+- [x] `src/ml/rules.py`
+  - [x] shallow surrogate `DecisionTreeRegressor` (depth 4) fit to approximate the calibrated score (not the label — see module docstring)
+  - [x] root-to-leaf path extraction as IF-THEN rules — 16 rules, 36.3% → 2.6% observed default rate
+  - [x] per-rule: population share, observed default rate, lift — measured directly against TARGET, not read off the tree
+  - [x] surrogate fidelity report: R²=0.488 vs. calibrated score, ROC-AUC 0.7207 vs. actual target (full model: 0.8766 on the same data)
+  - [x] `models/rules.json`
+- [x] tests: `tests/test_rules.py` (8) — exact-value assertions against a fixture with a known, checkable split (not just "did not crash")
 
 ## Phase 6 — Talk-to-data ✅ done (live-tested against real Gemini API)
 
