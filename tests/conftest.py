@@ -13,9 +13,50 @@ once the ETL has run; see docs/PROMPTS.md.
 
 from __future__ import annotations
 
+import os
+from typing import Iterator
+
+import duckdb
 import pytest
 
 from src.talk_to_data.catalog import Catalog, ColumnInfo, TableInfo
+
+_ENV_KEYS = ("DUCKDB_PATH", "DATA_DIR", "DUCKDB_MEMORY_LIMIT")
+
+
+@pytest.fixture
+def isolated_db(tmp_path_factory) -> Iterator[duckdb.DuckDBPyConnection]:
+    """A private DuckDB database, isolated from every other test's state.
+
+    Several test modules point the process-wide config and the cached
+    read-only connection at a shared temp database via environment variables.
+    A test that needs its *own* one-off database - a specific fixture shape a
+    regression test depends on - must not leave that global state pointed at
+    its private database when it finishes, or every test that runs after it
+    in the same module silently queries the wrong data. This fixture does the
+    save/mutate/restore so individual tests don't have to get it right by hand.
+    """
+    from src.utils.config import get_settings
+    from src.data.database import reset_readonly_connection, writable_connection
+
+    saved_env = {key: os.environ.get(key) for key in _ENV_KEYS}
+    tmp = tmp_path_factory.mktemp("isolated")
+    os.environ["DUCKDB_PATH"] = str(tmp / "t.duckdb")
+    os.environ["DATA_DIR"] = str(tmp)
+    os.environ["DUCKDB_MEMORY_LIMIT"] = "1GB"
+    get_settings.cache_clear()
+    reset_readonly_connection()
+
+    with writable_connection() as conn:
+        yield conn
+
+    reset_readonly_connection()
+    for key, value in saved_env.items():
+        if value is None:
+            os.environ.pop(key, None)
+        else:
+            os.environ[key] = value
+    get_settings.cache_clear()
 
 _APPLICATION_CORE = [
     ("SK_ID_CURR", "BIGINT"), ("TARGET", "BIGINT"),

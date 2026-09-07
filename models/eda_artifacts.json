@@ -1,0 +1,882 @@
+{
+  "table_summary": [
+    {
+      "name": "bureau_balance",
+      "description": "Monthly status history for each bureau credit.",
+      "row_count": 27299925,
+      "column_count": 3,
+      "approx_size_mb": 655.1982
+    },
+    {
+      "name": "installments_payments",
+      "description": "Scheduled vs actual repayments - the repayment-behaviour signal.",
+      "row_count": 13605401,
+      "column_count": 8,
+      "approx_size_mb": 870.745664
+    },
+    {
+      "name": "pos_cash_balance",
+      "description": "Monthly point-of-sale and cash-loan balance snapshots.",
+      "row_count": 10001358,
+      "column_count": 8,
+      "approx_size_mb": 640.086912
+    },
+    {
+      "name": "credit_card_balance",
+      "description": "Monthly credit-card balance snapshots.",
+      "row_count": 3840312,
+      "column_count": 23,
+      "approx_size_mb": 706.617408
+    },
+    {
+      "name": "bureau",
+      "description": "Prior credits at other institutions, reported to the credit bureau.",
+      "row_count": 1716428,
+      "column_count": 17,
+      "approx_size_mb": 233.434208
+    },
+    {
+      "name": "previous_application",
+      "description": "Earlier Home Credit applications by the same clients.",
+      "row_count": 1670214,
+      "column_count": 37,
+      "approx_size_mb": 494.383344
+    },
+    {
+      "name": "application_train",
+      "description": "One row per loan application, with the TARGET default label.",
+      "row_count": 307511,
+      "column_count": 122,
+      "approx_size_mb": 300.130736
+    },
+    {
+      "name": "application_test",
+      "description": "Unlabelled applications held out by the competition.",
+      "row_count": 48744,
+      "column_count": 121,
+      "approx_size_mb": 47.184192
+    },
+    {
+      "name": "column_descriptions",
+      "description": "Official column glossary. Feeds the chatbot's schema card.",
+      "row_count": 219,
+      "column_count": 5,
+      "approx_size_mb": 0.00876
+    }
+  ],
+  "feature_categories": {
+    "identifier": [
+      "SK_ID_CURR"
+    ],
+    "target": [
+      "TARGET"
+    ],
+    "financial": [
+      "NAME_CONTRACT_TYPE",
+      "FLAG_OWN_CAR",
+      "FLAG_OWN_REALTY",
+      "AMT_INCOME_TOTAL",
+      "AMT_CREDIT",
+      "AMT_ANNUITY",
+      "AMT_GOODS_PRICE",
+      "NAME_INCOME_TYPE",
+      "OWN_CAR_AGE"
+    ],
+    "demographic": [
+      "CODE_GENDER",
+      "CNT_CHILDREN",
+      "NAME_EDUCATION_TYPE",
+      "NAME_FAMILY_STATUS",
+      "NAME_HOUSING_TYPE",
+      "DAYS_BIRTH",
+      "OCCUPATION_TYPE",
+      "CNT_FAM_MEMBERS",
+      "ORGANIZATION_TYPE"
+    ],
+    "other": [
+      "NAME_TYPE_SUITE",
+      "WEEKDAY_APPR_PROCESS_START",
+      "HOUR_APPR_PROCESS_START",
+      "FONDKAPREMONT_MODE",
+      "HOUSETYPE_MODE",
+      "TOTALAREA_MODE",
+      "WALLSMATERIAL_MODE",
+      "EMERGENCYSTATE_MODE",
+      "OBS_30_CNT_SOCIAL_CIRCLE",
+      "DEF_30_CNT_SOCIAL_CIRCLE",
+      "OBS_60_CNT_SOCIAL_CIRCLE",
+      "DEF_60_CNT_SOCIAL_CIRCLE",
+      "DAYS_LAST_PHONE_CHANGE",
+      "AMT_REQ_CREDIT_BUREAU_HOUR",
+      "AMT_REQ_CREDIT_BUREAU_DAY",
+      "AMT_REQ_CREDIT_BUREAU_WEEK",
+      "AMT_REQ_CREDIT_BUREAU_MON",
+      "AMT_REQ_CREDIT_BUREAU_QRT",
+      "AMT_REQ_CREDIT_BUREAU_YEAR"
+    ],
+    "region": [
+      "REGION_POPULATION_RELATIVE",
+      "REGION_RATING_CLIENT",
+      "REGION_RATING_CLIENT_W_CITY",
+      "REG_REGION_NOT_LIVE_REGION",
+      "REG_REGION_NOT_WORK_REGION",
+      "LIVE_REGION_NOT_WORK_REGION",
+      "REG_CITY_NOT_LIVE_CITY",
+      "REG_CITY_NOT_WORK_CITY",
+      "LIVE_CITY_NOT_WORK_CITY"
+    ],
+    "employment": [
+      "DAYS_EMPLOYED",
+      "DAYS_REGISTRATION",
+      "DAYS_ID_PUBLISH"
+    ],
+    "contact_flag": [
+      "FLAG_MOBIL",
+      "FLAG_EMP_PHONE",
+      "FLAG_WORK_PHONE",
+      "FLAG_CONT_MOBILE",
+      "FLAG_PHONE",
+      "FLAG_EMAIL"
+    ],
+    "external_score": [
+      "EXT_SOURCE_1",
+      "EXT_SOURCE_2",
+      "EXT_SOURCE_3"
+    ],
+    "housing_detail": [
+      "APARTMENTS_AVG",
+      "BASEMENTAREA_AVG",
+      "YEARS_BEGINEXPLUATATION_AVG",
+      "YEARS_BUILD_AVG",
+      "COMMONAREA_AVG",
+      "ELEVATORS_AVG",
+      "ENTRANCES_AVG",
+      "FLOORSMAX_AVG",
+      "FLOORSMIN_AVG",
+      "LANDAREA_AVG",
+      "LIVINGAPARTMENTS_AVG",
+      "LIVINGAREA_AVG",
+      "NONLIVINGAPARTMENTS_AVG",
+      "NONLIVINGAREA_AVG",
+      "APARTMENTS_MODE",
+      "BASEMENTAREA_MODE",
+      "YEARS_BEGINEXPLUATATION_MODE",
+      "YEARS_BUILD_MODE",
+      "COMMONAREA_MODE",
+      "ELEVATORS_MODE",
+      "ENTRANCES_MODE",
+      "FLOORSMAX_MODE",
+      "FLOORSMIN_MODE",
+      "LANDAREA_MODE",
+      "LIVINGAPARTMENTS_MODE",
+      "LIVINGAREA_MODE",
+      "NONLIVINGAPARTMENTS_MODE",
+      "NONLIVINGAREA_MODE",
+      "APARTMENTS_MEDI",
+      "BASEMENTAREA_MEDI",
+      "YEARS_BEGINEXPLUATATION_MEDI",
+      "YEARS_BUILD_MEDI",
+      "COMMONAREA_MEDI",
+      "ELEVATORS_MEDI",
+      "ENTRANCES_MEDI",
+      "FLOORSMAX_MEDI",
+      "FLOORSMIN_MEDI",
+      "LANDAREA_MEDI",
+      "LIVINGAPARTMENTS_MEDI",
+      "LIVINGAREA_MEDI",
+      "NONLIVINGAPARTMENTS_MEDI",
+      "NONLIVINGAREA_MEDI"
+    ],
+    "document_flag": [
+      "FLAG_DOCUMENT_2",
+      "FLAG_DOCUMENT_3",
+      "FLAG_DOCUMENT_4",
+      "FLAG_DOCUMENT_5",
+      "FLAG_DOCUMENT_6",
+      "FLAG_DOCUMENT_7",
+      "FLAG_DOCUMENT_8",
+      "FLAG_DOCUMENT_9",
+      "FLAG_DOCUMENT_10",
+      "FLAG_DOCUMENT_11",
+      "FLAG_DOCUMENT_12",
+      "FLAG_DOCUMENT_13",
+      "FLAG_DOCUMENT_14",
+      "FLAG_DOCUMENT_15",
+      "FLAG_DOCUMENT_16",
+      "FLAG_DOCUMENT_17",
+      "FLAG_DOCUMENT_18",
+      "FLAG_DOCUMENT_19",
+      "FLAG_DOCUMENT_20",
+      "FLAG_DOCUMENT_21"
+    ]
+  },
+  "missing_values": [
+    {
+      "table": "previous_application",
+      "column": "RATE_INTEREST_PRIMARY",
+      "category": "other",
+      "pct_missing": 0.9964369835242669,
+      "n_missing": 1664263,
+      "n_total": 1670214
+    },
+    {
+      "table": "previous_application",
+      "column": "RATE_INTEREST_PRIVILEGED",
+      "category": "other",
+      "pct_missing": 0.9964369835242669,
+      "n_missing": 1664263,
+      "n_total": 1670214
+    },
+    {
+      "table": "bureau",
+      "column": "AMT_ANNUITY",
+      "category": "financial",
+      "pct_missing": 0.714734902949614,
+      "n_missing": 1226791,
+      "n_total": 1716428
+    },
+    {
+      "table": "application_train",
+      "column": "COMMONAREA_AVG",
+      "category": "housing_detail",
+      "pct_missing": 0.6987229725115525,
+      "n_missing": 214865,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "COMMONAREA_MODE",
+      "category": "housing_detail",
+      "pct_missing": 0.6987229725115525,
+      "n_missing": 214865,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "COMMONAREA_MEDI",
+      "category": "housing_detail",
+      "pct_missing": 0.6987229725115525,
+      "n_missing": 214865,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "NONLIVINGAPARTMENTS_AVG",
+      "category": "housing_detail",
+      "pct_missing": 0.6943296337366793,
+      "n_missing": 213514,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "NONLIVINGAPARTMENTS_MODE",
+      "category": "housing_detail",
+      "pct_missing": 0.6943296337366793,
+      "n_missing": 213514,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "NONLIVINGAPARTMENTS_MEDI",
+      "category": "housing_detail",
+      "pct_missing": 0.6943296337366793,
+      "n_missing": 213514,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "FONDKAPREMONT_MODE",
+      "category": "other",
+      "pct_missing": 0.6838617155158677,
+      "n_missing": 210295,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "LIVINGAPARTMENTS_AVG",
+      "category": "housing_detail",
+      "pct_missing": 0.6835495315614726,
+      "n_missing": 210199,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "LIVINGAPARTMENTS_MODE",
+      "category": "housing_detail",
+      "pct_missing": 0.6835495315614726,
+      "n_missing": 210199,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "LIVINGAPARTMENTS_MEDI",
+      "category": "housing_detail",
+      "pct_missing": 0.6835495315614726,
+      "n_missing": 210199,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "FLOORSMIN_AVG",
+      "category": "housing_detail",
+      "pct_missing": 0.6784862980511266,
+      "n_missing": 208642,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "FLOORSMIN_MODE",
+      "category": "housing_detail",
+      "pct_missing": 0.6784862980511266,
+      "n_missing": 208642,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "FLOORSMIN_MEDI",
+      "category": "housing_detail",
+      "pct_missing": 0.6784862980511266,
+      "n_missing": 208642,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "YEARS_BUILD_AVG",
+      "category": "housing_detail",
+      "pct_missing": 0.6649778381911542,
+      "n_missing": 204488,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "YEARS_BUILD_MODE",
+      "category": "housing_detail",
+      "pct_missing": 0.6649778381911542,
+      "n_missing": 204488,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "YEARS_BUILD_MEDI",
+      "category": "housing_detail",
+      "pct_missing": 0.6649778381911542,
+      "n_missing": 204488,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "OWN_CAR_AGE",
+      "category": "financial",
+      "pct_missing": 0.6599081008484249,
+      "n_missing": 202929,
+      "n_total": 307511
+    },
+    {
+      "table": "bureau",
+      "column": "AMT_CREDIT_MAX_OVERDUE",
+      "category": "financial",
+      "pct_missing": 0.6551326359159837,
+      "n_missing": 1124488,
+      "n_total": 1716428
+    },
+    {
+      "table": "application_train",
+      "column": "LANDAREA_AVG",
+      "category": "housing_detail",
+      "pct_missing": 0.5937673774271489,
+      "n_missing": 182590,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "LANDAREA_MODE",
+      "category": "housing_detail",
+      "pct_missing": 0.5937673774271489,
+      "n_missing": 182590,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "LANDAREA_MEDI",
+      "category": "housing_detail",
+      "pct_missing": 0.5937673774271489,
+      "n_missing": 182590,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "BASEMENTAREA_AVG",
+      "category": "housing_detail",
+      "pct_missing": 0.5851595552679416,
+      "n_missing": 179943,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "BASEMENTAREA_MODE",
+      "category": "housing_detail",
+      "pct_missing": 0.5851595552679416,
+      "n_missing": 179943,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "BASEMENTAREA_MEDI",
+      "category": "housing_detail",
+      "pct_missing": 0.5851595552679416,
+      "n_missing": 179943,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "EXT_SOURCE_1",
+      "category": "external_score",
+      "pct_missing": 0.5638107254699832,
+      "n_missing": 173378,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "NONLIVINGAREA_AVG",
+      "category": "housing_detail",
+      "pct_missing": 0.5517916432257708,
+      "n_missing": 169682,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "NONLIVINGAREA_MODE",
+      "category": "housing_detail",
+      "pct_missing": 0.5517916432257708,
+      "n_missing": 169682,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "NONLIVINGAREA_MEDI",
+      "category": "housing_detail",
+      "pct_missing": 0.5517916432257708,
+      "n_missing": 169682,
+      "n_total": 307511
+    },
+    {
+      "table": "previous_application",
+      "column": "AMT_DOWN_PAYMENT",
+      "category": "other",
+      "pct_missing": 0.536364801157217,
+      "n_missing": 895844,
+      "n_total": 1670214
+    },
+    {
+      "table": "previous_application",
+      "column": "RATE_DOWN_PAYMENT",
+      "category": "other",
+      "pct_missing": 0.536364801157217,
+      "n_missing": 895844,
+      "n_total": 1670214
+    },
+    {
+      "table": "application_train",
+      "column": "ELEVATORS_AVG",
+      "category": "housing_detail",
+      "pct_missing": 0.532959796560123,
+      "n_missing": 163891,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "ELEVATORS_MODE",
+      "category": "housing_detail",
+      "pct_missing": 0.532959796560123,
+      "n_missing": 163891,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "ELEVATORS_MEDI",
+      "category": "housing_detail",
+      "pct_missing": 0.532959796560123,
+      "n_missing": 163891,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "WALLSMATERIAL_MODE",
+      "category": "other",
+      "pct_missing": 0.508407829313423,
+      "n_missing": 156341,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "APARTMENTS_AVG",
+      "category": "housing_detail",
+      "pct_missing": 0.5074972927797705,
+      "n_missing": 156061,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "APARTMENTS_MODE",
+      "category": "housing_detail",
+      "pct_missing": 0.5074972927797705,
+      "n_missing": 156061,
+      "n_total": 307511
+    },
+    {
+      "table": "application_train",
+      "column": "APARTMENTS_MEDI",
+      "category": "housing_detail",
+      "pct_missing": 0.5074972927797705,
+      "n_missing": 156061,
+      "n_total": 307511
+    }
+  ],
+  "data_quality_findings": [
+    {
+      "id": "days_employed_sentinel",
+      "description": "DAYS_EMPLOYED uses 365243 (1000 years) as a sentinel for 'not employed' rather than a true value.",
+      "value": {
+        "count": 55374,
+        "pct": 0.1801
+      },
+      "severity": "action_needed"
+    },
+    {
+      "id": "gender_xna",
+      "description": "CODE_GENDER contains an 'XNA' (unknown) category.",
+      "value": {
+        "count": 4,
+        "pct": 1.3e-05
+      },
+      "severity": "notable"
+    },
+    {
+      "id": "income_outlier",
+      "description": "AMT_INCOME_TOTAL's maximum is far above its median, indicating at least one extreme outlier.",
+      "value": {
+        "max": 117000000.0,
+        "median": 147150.0,
+        "mean": 168797.9192969845,
+        "max_to_median_ratio": 795.1
+      },
+      "severity": "notable"
+    },
+    {
+      "id": "days_columns_sign",
+      "description": "DAYS_* columns are documented as negative offsets from the application date; checked all of them for unexpected positive values.",
+      "value": {
+        "columns_checked": 4,
+        "columns_with_positive_values": {}
+      },
+      "severity": "info"
+    },
+    {
+      "id": "building_stats_missing",
+      "description": "The building/apartment statistics block is missing for a large share of applicants (most live in housing types the block does not describe, e.g. rented or with parents).",
+      "value": {
+        "columns": 42,
+        "min_pct_missing": 0.488,
+        "max_pct_missing": 0.699
+      },
+      "severity": "notable"
+    },
+    {
+      "id": "class_imbalance",
+      "description": "TARGET is heavily imbalanced: most applicants repay.",
+      "value": {
+        "default_rate": 0.0807,
+        "imbalance_ratio": 11.4
+      },
+      "severity": "action_needed"
+    }
+  ],
+  "insights": [
+    {
+      "id": "ext_source_decile",
+      "title": "External credit score predicts default sharply",
+      "business_question": "How does the default rate change across EXT_SOURCE_2 deciles?",
+      "chart_type": "bar",
+      "columns": [
+        "decile",
+        "applicants",
+        "default_rate"
+      ],
+      "rows": [
+        [
+          1,
+          30686,
+          0.18350387798996284
+        ],
+        [
+          2,
+          30685,
+          0.12077562326869806
+        ],
+        [
+          3,
+          30685,
+          0.09959263483786866
+        ],
+        [
+          4,
+          30685,
+          0.08362392048232035
+        ],
+        [
+          5,
+          30685,
+          0.0742382271468144
+        ],
+        [
+          6,
+          30685,
+          0.0665471728857748
+        ],
+        [
+          7,
+          30685,
+          0.05846504806908913
+        ],
+        [
+          8,
+          30685,
+          0.04885123024278964
+        ],
+        [
+          9,
+          30685,
+          0.042007495518983216
+        ],
+        [
+          10,
+          30685,
+          0.029721362229102165
+        ]
+      ],
+      "headline": "The bottom EXT_SOURCE_2 decile defaults at 18.4%, versus 3.0% in the top decile - 6.2x the risk.",
+      "so_what": "EXT_SOURCE_2 alone separates risk more than most raw application fields; it should anchor both the model and any manual review rules."
+    },
+    {
+      "id": "age_vs_default",
+      "title": "Younger applicants default more often",
+      "business_question": "How does default rate vary with applicant age?",
+      "chart_type": "bar",
+      "columns": [
+        "age_band",
+        "applicants",
+        "default_rate"
+      ],
+      "rows": [
+        [
+          20.0,
+          45186,
+          0.11443810029655203
+        ],
+        [
+          30.0,
+          82331,
+          0.09591769807241501
+        ],
+        [
+          40.0,
+          76599,
+          0.07641091920260056
+        ],
+        [
+          50.0,
+          68094,
+          0.06120950450847358
+        ],
+        [
+          60.0,
+          35301,
+          0.04917707713662502
+        ]
+      ],
+      "headline": "Applicants in their 20s default at 11.4%, versus 4.9% for those in their 60s.",
+      "so_what": "Age bands are a legitimate, low-cost pre-screen signal, though policy must ensure they never substitute for individual assessment."
+    },
+    {
+      "id": "employment_vs_default",
+      "title": "Short employment tenure is the riskiest segment",
+      "business_question": "Does time in the current job relate to default?",
+      "chart_type": "bar",
+      "columns": [
+        "employment_band",
+        "applicants",
+        "default_rate"
+      ],
+      "rows": [
+        [
+          "under 2 years",
+          59827,
+          0.11202299964898792
+        ],
+        [
+          "2-5 years",
+          76529,
+          0.10075918932692182
+        ],
+        [
+          "over 5 years",
+          115781,
+          0.06410378214042027
+        ],
+        [
+          "not employed",
+          55374,
+          0.05399646043269404
+        ]
+      ],
+      "headline": "'under 2 years' applicants default most often, at 11.2%.",
+      "so_what": "Employment tenure captures income stability that raw income alone misses, and is cheap to verify at application time."
+    },
+    {
+      "id": "loan_burden_vs_default",
+      "title": "Loan burden relative to income has a non-linear relationship with default",
+      "business_question": "Does a higher credit-to-income ratio predict default?",
+      "chart_type": "bar",
+      "columns": [
+        "quintile",
+        "applicants",
+        "avg_credit_income_ratio",
+        "default_rate"
+      ],
+      "rows": [
+        [
+          1,
+          61503,
+          1.268288894921704,
+          0.07334601564151343
+        ],
+        [
+          2,
+          61502,
+          2.2824419700270027,
+          0.0856394913986537
+        ],
+        [
+          3,
+          61502,
+          3.2793387454140435,
+          0.08928164937725602
+        ],
+        [
+          4,
+          61502,
+          4.747162153206376,
+          0.08284283437936978
+        ],
+        [
+          5,
+          61502,
+          8.21066315347339,
+          0.07253422652921857
+        ]
+      ],
+      "headline": "Quintile 3 (avg ratio 3.3x income) defaults most often, at 8.9%, versus 7.3% in quintile 5 (avg ratio 8.2x).",
+      "so_what": "The riskiest quintile is not the heaviest-burden one, so a simple 'flag high ratios' rule would miss it - this is better left to the model, which can combine the ratio with other signals, than encoded as a standalone threshold rule."
+    },
+    {
+      "id": "contract_type_vs_default",
+      "title": "Loan type is associated with different risk levels",
+      "business_question": "Do cash loans and revolving loans default at different rates?",
+      "chart_type": "bar",
+      "columns": [
+        "NAME_CONTRACT_TYPE",
+        "applicants",
+        "default_rate"
+      ],
+      "rows": [
+        [
+          "Cash loans",
+          278232,
+          0.08345912763449208
+        ],
+        [
+          "Revolving loans",
+          29279,
+          0.05478329177909082
+        ]
+      ],
+      "headline": "Cash loans applicants default at 8.3%, the highest of the contract types.",
+      "so_what": "Product-level risk differences justify differentiated pricing or underwriting thresholds by loan type."
+    },
+    {
+      "id": "bureau_overdue_vs_default",
+      "title": "Overdue debt at other institutions is a strong warning sign",
+      "business_question": "Do clients with overdue bureau credit default more on this loan?",
+      "chart_type": "bar",
+      "columns": [
+        "overdue_status",
+        "applicants",
+        "default_rate"
+      ],
+      "rows": [
+        [
+          "has overdue bureau credit",
+          3334,
+          0.16196760647870426
+        ],
+        [
+          "no overdue bureau credit",
+          260157,
+          0.07621551601532921
+        ]
+      ],
+      "headline": "Clients with overdue bureau credit default at 16.2%, versus 7.6% for those with none.",
+      "so_what": "Bureau data adds signal application data alone cannot see - obligations already in trouble elsewhere."
+    },
+    {
+      "id": "previous_refusal_vs_default",
+      "title": "A past refusal at this lender predicts future default",
+      "business_question": "Do clients who were refused before default more when approved later?",
+      "chart_type": "bar",
+      "columns": [
+        "history",
+        "applicants",
+        "default_rate"
+      ],
+      "rows": [
+        [
+          "previously refused",
+          100294,
+          0.10321654336251421
+        ],
+        [
+          "never refused",
+          190763,
+          0.07073174567395145
+        ]
+      ],
+      "headline": "Clients previously refused default at 10.3%.",
+      "so_what": "Internal application history is free to use and should weigh into repeat-applicant underwriting."
+    },
+    {
+      "id": "installment_lateness_vs_default",
+      "title": "Late repayment behaviour on past installments carries forward",
+      "business_question": "Do clients who paid past installments late default more on new loans?",
+      "chart_type": "bar",
+      "columns": [
+        "payment_behaviour",
+        "applicants",
+        "default_rate"
+      ],
+      "rows": [
+        [
+          "often pay late",
+          3764,
+          0.12114771519659936
+        ],
+        [
+          "pay on time or early",
+          287871,
+          0.08135241132312737
+        ]
+      ],
+      "headline": "Clients who often pay late default at 12.1%.",
+      "so_what": "Observed repayment behaviour, not just stated intent, is one of the most directly actionable signals in the dataset."
+    }
+  ]
+}

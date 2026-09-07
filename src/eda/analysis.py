@@ -343,16 +343,20 @@ def insight_default_by_ext_source(conn: duckdb.DuckDBPyConnection) -> Insight:
     FROM scored GROUP BY decile ORDER BY decile
     """
     cols, rows = _fetch(conn, sql)
-    lowest, highest = rows[0], rows[-1]
-    lift = (highest[2] / lowest[2]) if lowest[2] else None
+    # decile 1 = lowest EXT_SOURCE_2 score; decile 10 = highest score. The
+    # score is protective, so decile 1 has the *higher* default rate - the
+    # lift is expressed as "riskiest over safest", not "last row over first".
+    bottom_score_decile, top_score_decile = rows[0], rows[-1]
+    bottom_rate, top_rate = bottom_score_decile[2], top_score_decile[2]
+    lift = (bottom_rate / top_rate) if top_rate else None
     return Insight(
         id="ext_source_decile", title="External credit score predicts default sharply",
         business_question="How does the default rate change across EXT_SOURCE_2 deciles?",
         chart_type="bar", columns=cols, rows=rows,
         headline=(
-            f"The bottom EXT_SOURCE_2 decile defaults at {_pct(lowest[2])}, versus "
-            f"{_pct(highest[2])} in the top decile"
-            + (f" - a {lift:.1f}x difference." if lift else ".")
+            f"The bottom EXT_SOURCE_2 decile defaults at {_pct(bottom_rate)}, versus "
+            f"{_pct(top_rate)} in the top decile"
+            + (f" - {lift:.1f}x the risk." if lift else ".")
         ),
         so_what=(
             "EXT_SOURCE_2 alone separates risk more than most raw application "
@@ -420,17 +424,36 @@ def insight_loan_burden_vs_default(conn: duckdb.DuckDBPyConnection) -> Insight:
     FROM scored GROUP BY quintile ORDER BY quintile
     """
     cols, rows = _fetch(conn, sql)
-    lowest, highest = rows[0], rows[-1]
+    # Found by actual value, not by assuming quintile 1 or 5 is the extreme -
+    # on the real data this relationship is not monotonic (see so_what).
+    riskiest = max(rows, key=lambda r: r[3])
+    safest = min(rows, key=lambda r: r[3])
+    is_monotonic = riskiest[0] == rows[-1][0] and safest[0] == rows[0][0]
+
+    title = (
+        "Heavier loan burden relative to income raises default risk"
+        if is_monotonic else
+        "Loan burden relative to income has a non-linear relationship with default"
+    )
+    so_what = (
+        "Credit-to-income ratio is an engineered feature the model already "
+        "uses, and doubles as a plain-English underwriting rule."
+        if is_monotonic else
+        "The riskiest quintile is not the heaviest-burden one, so a simple "
+        "'flag high ratios' rule would miss it - this is better left to the "
+        "model, which can combine the ratio with other signals, than encoded "
+        "as a standalone threshold rule."
+    )
     return Insight(
-        id="loan_burden_vs_default", title="Heavier loan burden relative to income raises default risk",
+        id="loan_burden_vs_default", title=title,
         business_question="Does a higher credit-to-income ratio predict default?",
         chart_type="bar", columns=cols, rows=rows,
         headline=(
-            f"The lightest-burden quintile (avg ratio {highest[2]:.1f}x lowest) "
-            f"defaults at {_pct(lowest[3])}, the heaviest at {_pct(highest[3])}."
+            f"Quintile {int(riskiest[0])} (avg ratio {riskiest[2]:.1f}x income) "
+            f"defaults most often, at {_pct(riskiest[3])}, versus {_pct(safest[3])} "
+            f"in quintile {int(safest[0])} (avg ratio {safest[2]:.1f}x)."
         ),
-        so_what="Credit-to-income ratio is an engineered feature the model already "
-                "uses, and doubles as a plain-English underwriting rule.",
+        so_what=so_what,
     )
 
 
@@ -513,8 +536,8 @@ def insight_installment_lateness_vs_default(conn: duckdb.DuckDBPyConnection) -> 
         FROM installments_payments WHERE DAYS_ENTRY_PAYMENT IS NOT NULL
         GROUP BY SK_ID_CURR
     )
-    SELECT CASE WHEN p.avg_days_late > 5 THEN 'often pays late'
-                ELSE 'pays on time or early' END AS payment_behaviour,
+    SELECT CASE WHEN p.avg_days_late > 5 THEN 'often pay late'
+                ELSE 'pay on time or early' END AS payment_behaviour,
            count(*) AS applicants, avg(a.TARGET) AS default_rate
     FROM application_train a JOIN per_client p ON p.SK_ID_CURR = a.SK_ID_CURR
     GROUP BY payment_behaviour ORDER BY default_rate DESC

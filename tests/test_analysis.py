@@ -149,6 +149,75 @@ def test_ext_source_insight_reflects_the_actual_split(db) -> None:
     assert "EXT_SOURCE_2" in insight.headline
 
 
+def test_ext_source_lift_direction_is_not_inverted(isolated_db) -> None:
+    """Regression test: an earlier version computed top-decile-rate /
+    bottom-decile-rate (< 1, described as 'a 0.2x difference') instead of
+    bottom-over-top, which understates a 6x risk gap as a 0.2x one. Uses a
+    dedicated fixture where the true ratio is a known, checkable value.
+
+    `isolated_db` (see conftest.py) gives a private database and restores all
+    global config/connection state afterward, so this cannot leak into the
+    other tests in this module that rely on the shared `db` fixture.
+    """
+    conn = isolated_db
+    # 100 applicants, EXT_SOURCE_2 = i/100 (spreads evenly across deciles).
+    # Bottom decile (lowest score, i<10) defaults 40%; top decile (i>=90)
+    # defaults 10% - a known, exact 4x gap, bottom over top.
+    conn.execute("""
+        CREATE TABLE application_train AS
+        SELECT i AS SK_ID_CURR, i / 100.0 AS EXT_SOURCE_2,
+               (CASE WHEN i < 10 THEN i % 5 < 2
+                     WHEN i >= 90 THEN i % 10 = 0
+                     ELSE i % 4 = 0 END)::BIGINT AS TARGET
+        FROM range(100) t(i)
+    """)
+
+    from src.eda.analysis import insight_default_by_ext_source
+    insight = insight_default_by_ext_source(conn)
+
+    bottom_rate = next(r[2] for r in insight.rows if r[0] == 1)
+    top_rate = next(r[2] for r in insight.rows if r[0] == 10)
+    assert bottom_rate > top_rate  # sanity: the fixture is set up as intended
+
+    # The headline must state the risk gap the right way round: bottom over
+    # top (>1x, "more risk"), never top over bottom (<1x).
+    import re
+    match = re.search(r"([\d.]+)x the risk", insight.headline)
+    assert match, insight.headline
+    stated_lift = float(match.group(1))
+    assert stated_lift == pytest.approx(bottom_rate / top_rate, rel=0.01)
+    assert stated_lift > 1.0
+
+
+def test_loan_burden_insight_finds_the_true_peak_not_the_endpoints(
+    isolated_db,
+) -> None:
+    """Regression test: an earlier version assumed quintile 1 and quintile 5
+    were the safest/riskiest, which silently hid a non-monotonic
+    relationship where the middle quintile was actually riskiest."""
+    conn = isolated_db
+    # AMT_CREDIT increases monotonically with i, so ntile(5) on the resulting
+    # ratio puts i in [0,19] in quintile 1, [40,59] in quintile 3, [80,99] in
+    # quintile 5. TARGET=1 only for i in [45,54] - squarely inside quintile 3
+    # and nowhere else - so quintile 3 defaults most, 1 and 5 default zero.
+    conn.execute("""
+        CREATE TABLE application_train AS
+        SELECT i AS SK_ID_CURR,
+               100000.0 AS AMT_INCOME_TOTAL,
+               (1 + i) * 20000.0 AS AMT_CREDIT,
+               (i BETWEEN 45 AND 54)::BIGINT AS TARGET
+        FROM range(100) t(i)
+    """)
+
+    from src.eda.analysis import insight_loan_burden_vs_default
+    insight = insight_loan_burden_vs_default(conn)
+
+    riskiest_quintile = max(insight.rows, key=lambda r: r[3])[0]
+    assert riskiest_quintile == 3  # the middle, not quintile 1 or 5
+    assert "quintile 3" in insight.headline.lower()
+    assert "non-linear" in insight.title.lower()
+
+
 def test_bureau_overdue_insight_finds_the_exact_split(db) -> None:
     from src.data.database import get_readonly_connection
     from src.eda.analysis import insight_bureau_history_vs_default
@@ -177,8 +246,8 @@ def test_installment_lateness_insight_finds_the_exact_split(db) -> None:
     by_behaviour = {row[0]: row for row in insight.rows}
     # DAYS_ENTRY_PAYMENT(-110) - DAYS_INSTALMENT(-100) = -10 (early) for i>=5;
     # -80 - -100 = +20 (late) for i<5.
-    assert by_behaviour["often pays late"][1] == 5
-    assert by_behaviour["pays on time or early"][1] == 10
+    assert by_behaviour["often pay late"][1] == 5
+    assert by_behaviour["pay on time or early"][1] == 10
 
 
 def test_run_all_insights_skips_missing_tables_gracefully(db) -> None:

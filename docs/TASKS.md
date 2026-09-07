@@ -36,33 +36,35 @@ a real command executed, real output inspected) — not on "written but untested
   - [x] index creation on join keys
   - [x] `sql/schema.sql` generated from the live catalog
   - [x] rehearsed end-to-end on synthetic data (both header-only and full-column variants)
-- [ ] **Run against the real Kaggle dataset** — blocked on Kaggle credentials from user
-  - [ ] `python -m src.data.loader` (full mode)
-  - [ ] verify real row counts match `SOURCE_FILES.expected_rows`
-  - [ ] confirm real default rate ≈ 8.07%
-  - [ ] measure real build time and `.duckdb` file size
-  - [ ] commit real `sql/schema.sql` (currently holds synthetic-data schema, must be regenerated)
+- [x] **Run against the real Kaggle dataset**
+  - [x] `python -m src.data.loader --force` (full mode) — 78.4s, 2.37 GB
+  - [x] verify real row counts match `SOURCE_FILES.expected_rows` — all 8 tables exact
+  - [x] confirm real default rate ≈ 8.07% — measured 8.073%
+  - [x] measure real build time and `.duckdb` file size — 78.4s, 2.37 GB
+  - [x] commit real `sql/schema.sql` (regenerated from the real database)
 
-## Phase 2 — EDA
+## Phase 2 — EDA ✅ done
 
-- [ ] `src/eda/analysis.py` — pure functions, one per insight, each returning `(figure_data, chart_spec)`
-  - [ ] dataset summary: row/column counts per table, dtypes, memory footprint
-  - [ ] feature categorisation (demographic / financial / credit-history / behavioural / document-flag / external-score)
-  - [ ] missing-value analysis: % missing per column, grouped by category
-  - [ ] data-quality catalogue, confirmed against real data: `DAYS_EMPLOYED=365243` rate, `CODE_GENDER='XNA'` count, `AMT_INCOME_TOTAL` outlier, negative `DAYS_*` sanity, building-stats missingness %
-  - [ ] insight 1: default rate by EXT_SOURCE decile
-  - [ ] insight 2: age/employment tenure vs default
-  - [ ] insight 3: loan-to-income / annuity-to-income burden vs default
-  - [ ] insight 4: contract type & income source segments vs default
-  - [ ] insight 5: bureau history depth & active-overdue exposure vs default
-  - [ ] insight 6: previous-application refusal history vs default
-  - [ ] insight 7: installment lateness vs default
-- [ ] `src/eda/charts.py` — matplotlib rendering, saved to `models/charts/*.png`
-- [ ] `models/eda_artifacts.json` — precomputed figures the API serves
+- [x] `src/eda/analysis.py` — pure functions, one per insight
+  - [x] dataset summary: row/column counts per table
+  - [x] feature categorisation (demographic / financial / credit-history / behavioural / document-flag / external-score / region / contact-flag / housing-detail)
+  - [x] missing-value analysis: % missing per column, grouped by category
+  - [x] data-quality catalogue, confirmed against real data: `DAYS_EMPLOYED=365243` at 18.0%, `CODE_GENDER='XNA'` (4 rows), `AMT_INCOME_TOTAL` outlier (795x median), `DAYS_*` sign check (clean), building-stats missingness 48.8-69.9%, class imbalance 11.4:1
+  - [x] insight 1: default rate by EXT_SOURCE_2 decile (18.4% → 3.0%, 6.2x)
+  - [x] insight 2: age vs default (11.4% in 20s → 4.9% in 60s)
+  - [x] insight 3: employment tenure vs default (11.2% under 2 years)
+  - [x] insight 4: credit-to-income quintile vs default (found non-monotonic — quintile 3 peaks, not quintile 5)
+  - [x] insight 5: contract type vs default (cash loans 8.3%)
+  - [x] insight 6: bureau overdue exposure vs default (16.2% vs 7.6%)
+  - [x] insight 7: previous-application refusal history vs default (10.3%)
+  - [x] insight 8: installment lateness vs default (12.1%) — 8 insights total, exceeding the ≥5 requirement
+- [x] `src/eda/charts.py` — matplotlib rendering, saved to `models/charts/*.png` (9 charts)
+- [x] `models/eda_artifacts.json` — precomputed figures the API serves
+- [x] `scripts/build_eda_artifacts.py` — regenerates both from the live database
 - [ ] `notebooks/eda.py` (jupytext light-format) importing `src.eda.analysis`
 - [ ] pair `notebooks/eda.py` ↔ `notebooks/eda.ipynb` via jupytext, execute once, save outputs
-- [ ] `docs/EDA_FINDINGS.md` — the 7 insights written up with real numbers and chart references
-- [ ] unit tests for `src/eda/analysis.py` functions against the synthetic fixture
+- [x] `docs/EDA_FINDINGS.md` — all 8 insights written up with real numbers and chart references
+- [x] unit tests for `src/eda/analysis.py` — 12 tests including 2 regression tests for real bugs found (backwards lift ratio, false monotonicity assumption)
 
 ## Phase 3 — ML training
 
@@ -106,20 +108,21 @@ a real command executed, real output inspected) — not on "written but untested
   - [ ] `models/rules.json`
 - [ ] tests: each rule's stated default rate re-derived independently via a raw DuckDB query (`tests/test_rules.py`)
 
-## Phase 6 — Talk-to-data (mostly done, pending real data)
+## Phase 6 — Talk-to-data ✅ done (live-tested against real Gemini API)
 
 - [x] `src/talk_to_data/catalog.py` — live schema + Kaggle glossary
 - [x] `src/talk_to_data/sql_validator.py` — AST validation (36 adversarial tests)
 - [x] `src/talk_to_data/schema_card.py` — tiered, pruned, domain-prior-weighted (18 tests)
 - [x] `src/talk_to_data/prompt_templates.py` — versioned, 10 few-shot examples, refusal protocol
-- [x] `src/llm/gemini.py` — client, model fallback chain, token accounting, `thinking_budget=0`
+- [x] `src/llm/gemini.py` — client, reactive model fallback, token accounting, `thinking_level="low"`
 - [x] `src/talk_to_data/query_runner.py` — watchdog timeout, markdown rendering (8 tests)
 - [x] `src/talk_to_data/nl_to_sql.py` — orchestrator, one-shot repair loop (11 tests)
-- [ ] **Live test against real Gemini API** — blocked on `GOOGLE_API_KEY` from user
-  - [ ] run the 8 documented query patterns for real, capture actual SQL + answers
-  - [ ] measure real token usage per call (prompt/output/thought/cached)
-  - [ ] confirm model fallback chain resolves correctly for the user's key tier
-- [ ] `docs/PROMPTS.md` — prompt templates, token-optimisation numbers (measured), sample transcripts
+- [x] **Live test against real Gemini API**
+  - [x] ran multiple query patterns for real, captured actual SQL + grounded answers (zero hallucinated columns, zero repairs needed)
+  - [x] measured real token usage per call (prompt/output/thought/cached) via `tests/test_gemini_live.py`
+  - [x] confirmed pinned model ids (`gemini-3.7-flash`, `gemini-3.5-flash-lite`) resolve directly, no fallback needed for this key
+  - [x] found and fixed 2 real bugs: `thinking_budget=0` rejected on Gemini 3.x (use `thinking_level` instead); summariser hallucinating truncation from seeing `LIMIT` in SQL it didn't need to see
+- [ ] `docs/PROMPTS.md` — prompt templates, token-optimisation numbers (measured), sample transcripts (real transcripts already captured this session, need writing up)
 
 ## Phase 7 — FastAPI service
 
