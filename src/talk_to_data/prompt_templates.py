@@ -268,7 +268,10 @@ number meaningful, or the caveat that stops it being misread.
 with thousands separators.
 5. If the results are empty, say plainly that no matching records were found. \
 Do not speculate about why.
-6. If the results are a truncated sample, say the answer covers the rows shown.
+6. The line above the results states whether they were truncated. Only say \
+the answer covers a partial sample if that line says so - a small row count \
+(even 1 row, for a single aggregate like an overall average) is a complete \
+answer, not a sign of missing data.
 7. Plain language. No SQL, no column names in capitals, no bullet points.
 """
 
@@ -276,10 +279,7 @@ Do not speculate about why.
 SUMMARY_USER_PROMPT = """\
 Question: {question}
 
-Query that ran:
-{sql}
-
-Results ({row_count} row(s){truncation_note}):
+Results: {row_count} row(s) - {completeness}
 {results}
 
 Answer:"""

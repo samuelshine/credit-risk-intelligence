@@ -268,17 +268,23 @@ class TalkToData:
         the model's job is to state what it shows, and paying to send 500 rows
         to have three sentences written about them would be waste.
         """
-        truncation_note = ""
         if result.truncated:
-            truncation_note = f", truncated to the first {result.row_count}"
+            completeness = (
+                f"truncated to the first {result.row_count} "
+                f"(more rows matched the query but were cut off)"
+            )
         elif result.row_count > max_rows:
-            truncation_note = f", showing the first {max_rows} to the summariser"
+            completeness = (
+                f"the query returned {result.row_count}, only the first "
+                f"{max_rows} are shown below"
+            )
+        else:
+            completeness = "this is the complete result, not a sample"
 
         user = SUMMARY_USER_PROMPT.format(
             question=answer.question,
-            sql=answer.sql,
             row_count=result.row_count,
-            truncation_note=truncation_note,
+            completeness=completeness,
             results=result.to_markdown(max_rows=max_rows),
         )
         summary = self.client.generate(

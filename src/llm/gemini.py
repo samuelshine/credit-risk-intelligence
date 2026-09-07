@@ -13,15 +13,25 @@ optimisation claims there are measured, not asserted.
 question should get the same SQL, and a changing answer would make the
 documented transcripts worthless.
 
-**Thinking disabled.** Gemini 3 models reason before answering by default.
-For NL-to-SQL that reasoning is billed output tokens spent re-deriving a
-translation the few-shot examples already demonstrate, so `thinking_budget=0`
-is set explicitly on both calls.
+**Thinking minimised.** Gemini 3 models reason before answering by default,
+billed as output tokens. Measured against the live API: `thinking_budget=0`
+(the Gemini 2.x way to disable it outright) is rejected outright on the 3.x
+line with `400 INVALID_ARGUMENT` - there is no full "off" any more, only
+`thinking_level` in {low, medium, high}. Both calls here set `low`, which on a
+one-word answer still cost 58-77 thought tokens in testing. That floor is
+priced into `docs/PROMPTS.md`'s token accounting rather than assumed away.
 
 **Degrading, not crashing.** With no API key configured the client raises
 `LLMUnavailable` rather than failing at import. The API still starts, EDA,
 scoring, explanations and rules all keep working, and only the chatbot reports
 that it needs a key.
+
+**Resolution is reactive, not just listed.** `client.models.list()` overstates
+what a key can actually call: on the key this was built against, `list()`
+included `gemini-2.5-flash`, but generating with it 404'd as "no longer
+available to new users." So `list()` is used only as a first, cheap filter;
+the real check is the first successful `generate_content` call, and a model
+that 404s at call time is struck from the candidates and the next one tried.
 """
 
 from __future__ import annotations
@@ -35,15 +45,22 @@ from src.utils.logger import get_logger
 
 log = get_logger(__name__)
 
-#: Tried in order when the configured model is unavailable to the key's tier.
-#: A free-tier key may not reach the newest model, and failing the whole
-#: chatbot over that would be a poor trade.
+#: Tried in order when the configured model turns out unusable for this key -
+#: either absent from `models.list()`, or 404ing at generation time despite
+#: being listed (see the module docstring). A free-tier or newly created key
+#: may not reach every model, and failing the whole chatbot over that would be
+#: a poor trade.
 MODEL_FALLBACKS: dict[str, tuple[str, ...]] = {
-    "sql": ("gemini-3.7-flash", "gemini-3.5-flash", "gemini-flash-latest",
-            "gemini-2.5-flash"),
+    "sql": ("gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash",
+            "gemini-flash-latest"),
     "summary": ("gemini-3.5-flash-lite", "gemini-3.1-flash-lite",
-                "gemini-flash-lite-latest", "gemini-2.5-flash-lite"),
+                "gemini-flash-lite-latest"),
 }
+
+#: Node types of google.genai errors that mean "this model id will never work
+#: for this key" rather than "try again" - triggers advancing to the next
+#: fallback candidate instead of a retry.
+_MODEL_UNAVAILABLE_STATUSES = frozenset({"NOT_FOUND", "PERMISSION_DENIED"})
 
 _RETRYABLE_TOKENS = (
     "429", "500", "502", "503", "504", "unavailable", "overloaded",
@@ -138,54 +155,32 @@ class GeminiClient:
         return self._client
 
     def resolve_model(self, role: str) -> str:
-        """Pick a usable model id for `role`, preferring the configured one.
+        """The model id currently in use for `role`.
 
-        The key's tier decides what is reachable, so the available models are
-        listed once and the first working candidate is cached. Logged, because
-        an evaluator needs to know which model actually produced the results.
+        Before the first successful call this is just the configured value -
+        an intention, not a confirmed fact. `generate()` is what actually
+        confirms a model works and updates this cache; see the module
+        docstring for why a model appearing in `models.list()` is not enough
+        to trust on its own.
         """
         if role in self._resolved:
             return self._resolved[role]
+        return (
+            self._settings.gemini_model_sql if role == "sql"
+            else self._settings.gemini_model_summary
+        )
 
+    def _candidates(self, role: str) -> list[str]:
+        """Ordered models to try for `role`: resolved first if we have one."""
         configured = (
             self._settings.gemini_model_sql if role == "sql"
             else self._settings.gemini_model_summary
         )
-        candidates = [configured, *MODEL_FALLBACKS.get(role, ())]
-
-        try:
-            client = self._ensure_client()
-            available = {
-                m.name.removeprefix("models/")
-                for m in client.models.list()
-                if m.name
-            }
-        except LLMUnavailable:
-            raise
-        except Exception as exc:
-            # Listing is a convenience. If it fails, trust the configuration
-            # and let the actual call report a real error.
-            log.warning("could not list Gemini models (%s); using %s",
-                        exc, configured)
-            self._resolved[role] = configured
-            return configured
-
-        for candidate in candidates:
-            if candidate in available:
-                if candidate != configured:
-                    log.warning(
-                        "configured model %r unavailable for this key; "
-                        "using %r for %s", configured, candidate, role,
-                    )
-                else:
-                    log.info("using %s for %s", candidate, role)
-                self._resolved[role] = candidate
-                return candidate
-
-        raise LLMUnavailable(
-            f"None of the {role} models are available to this API key. "
-            f"Tried: {', '.join(candidates)}."
-        )
+        ordered = [self._resolved[role]] if role in self._resolved else [configured]
+        for candidate in MODEL_FALLBACKS.get(role, ()):
+            if candidate not in ordered:
+                ordered.append(candidate)
+        return ordered
 
     # -- generation ---------------------------------------------------------
     def generate(
@@ -199,16 +194,55 @@ class GeminiClient:
         stop_sequences: list[str] | None = None,
         max_attempts: int = 3,
     ) -> LLMResponse:
-        """One generation call, retried on transient failures only.
+        """Generate, falling back across models, retrying transient failures.
 
-        Retries use exponential backoff and cover rate limits and 5xx. A
-        malformed request or an auth failure is raised immediately - retrying
-        those wastes the user's quota and their time.
+        Two failure modes need different handling, and confusing them either
+        wastes quota (retrying a model id that will never work) or gives up
+        too early (treating a rate limit as permanent):
+
+        - **Model unavailable** (404 / permission denied): this model id will
+          never work for this key. Move to the next fallback candidate
+          immediately, no retry.
+        - **Transient** (429, 5xx, timeout): the model is fine, this attempt
+          was not. Retry the same model with exponential backoff.
         """
-        from google.genai import types  # lazy, as above
-
         client = self._ensure_client()
-        model = self.resolve_model(role)
+        candidates = self._candidates(role)
+
+        last_error: Exception | None = None
+        for model in candidates:
+            try:
+                response, usage = self._generate_with_retry(
+                    client, model, system, user, max_output_tokens,
+                    temperature, stop_sequences, max_attempts,
+                )
+            except Exception as exc:
+                if not self._is_model_unavailable(exc):
+                    raise
+                last_error = exc
+                log.warning(
+                    "model %r unavailable for this key (%s); trying next "
+                    "candidate for %s", model, type(exc).__name__, role,
+                )
+                continue
+
+            if model != self._resolved.get(role):
+                log.info("using %s for %s", model, role)
+            self._resolved[role] = model
+            self.totals.add(usage)
+            return LLMResponse(text=(response.text or "").strip(), usage=usage)
+
+        raise LLMUnavailable(
+            f"None of the {role} models are available to this API key. "
+            f"Tried: {', '.join(candidates)}."
+        ) from last_error
+
+    def _generate_with_retry(
+        self, client, model, system, user, max_output_tokens, temperature,
+        stop_sequences, max_attempts,
+    ):
+        """One model, retried on transient failures only."""
+        from google.genai import types  # lazy, as in _ensure_client
 
         config = types.GenerateContentConfig(
             system_instruction=system,
@@ -216,9 +250,11 @@ class GeminiClient:
             max_output_tokens=max_output_tokens,
             seed=42,
             stop_sequences=stop_sequences or [],
-            # Billed output tokens spent re-deriving what the few-shot
-            # examples already show. See docs/PROMPTS.md for the measurement.
-            thinking_config=types.ThinkingConfig(thinking_budget=0),
+            # Gemini 3.x has no full "off": thinking_budget=0, the Gemini 2.x
+            # way to disable it, is rejected with 400 INVALID_ARGUMENT
+            # (confirmed against the live API). `low` is the closest available
+            # and is what docs/PROMPTS.md's token accounting is measured against.
+            thinking_config=types.ThinkingConfig(thinking_level="low"),
         )
 
         last_error: Exception | None = None
@@ -230,6 +266,8 @@ class GeminiClient:
                 )
             except Exception as exc:
                 last_error = exc
+                if self._is_model_unavailable(exc):
+                    raise  # let the caller advance to the next candidate
                 if not self._is_retryable(exc) or attempt == max_attempts:
                     raise
                 backoff = 2 ** (attempt - 1)
@@ -241,12 +279,12 @@ class GeminiClient:
             usage = self._extract_usage(
                 response, model, int((time.perf_counter() - started) * 1000)
             )
-            self.totals.add(usage)
-            text = (response.text or "").strip()
-            log.debug("Gemini %s: %d prompt + %d output tokens in %dms",
-                      model, usage.prompt_tokens, usage.output_tokens,
-                      usage.latency_ms)
-            return LLMResponse(text=text, usage=usage)
+            log.debug(
+                "Gemini %s: %d prompt + %d thought + %d output tokens in %dms",
+                model, usage.prompt_tokens, usage.thought_tokens,
+                usage.output_tokens, usage.latency_ms,
+            )
+            return response, usage
 
         raise RuntimeError("unreachable") from last_error
 
@@ -254,6 +292,23 @@ class GeminiClient:
     def _is_retryable(exc: Exception) -> bool:
         message = str(exc).lower()
         return any(token in message for token in _RETRYABLE_TOKENS)
+
+    @staticmethod
+    def _is_model_unavailable(exc: Exception) -> bool:
+        """True when this model id will never work for this key.
+
+        Checked on typed attributes first (`google.genai.errors.APIError`
+        carries `.code` and `.status`), falling back to the message text for
+        any other exception shape the SDK might raise.
+        """
+        status = getattr(exc, "status", None)
+        if status in _MODEL_UNAVAILABLE_STATUSES:
+            return True
+        code = getattr(exc, "code", None)
+        if code in (404, 403):
+            return True
+        message = str(exc).lower()
+        return "not_found" in message or "permission_denied" in message
 
     @staticmethod
     def _extract_usage(response, model: str, latency_ms: int) -> Usage:
