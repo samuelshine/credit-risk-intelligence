@@ -162,6 +162,22 @@ _TABLES: dict[str, tuple[int, list[tuple[str, str]]]] = {
 }
 
 
+def create_empty_child_tables(conn) -> None:
+    """Create every non-application table from `_TABLES` above, empty.
+
+    The feature SQL (`src.data.features.build_feature_sql`) joins all six
+    child tables regardless of what a test cares about, so any test that
+    exercises it - directly, or indirectly via `RiskModel`/`Explainer`/
+    `src.ml.rules` - needs every join target to exist with the real column
+    set, even when only `application_train` itself is populated.
+    """
+    for table, (_, columns) in _TABLES.items():
+        if table == "application_train":
+            continue
+        ddl = ", ".join(f'"{name}" {dtype}' for name, dtype in columns)
+        conn.execute(f'CREATE TABLE "{table}" ({ddl})')
+
+
 @pytest.fixture(scope="session")
 def realistic_catalog() -> Catalog:
     from src.talk_to_data.catalog import TABLE_DESCRIPTIONS

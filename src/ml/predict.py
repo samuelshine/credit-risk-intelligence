@@ -212,6 +212,15 @@ class RiskModel:
         )
 
 
+def load_applicant_frame(conn, sk_id_curr: int) -> pd.DataFrame:
+    """Public entry point to `_load_single_applicant`, for callers (the
+    `/api/explain` route) that need the raw feature frame itself rather than
+    a `Prediction` - explaining a score requires the frame SHAP will see,
+    which `predict_one` doesn't expose. Returns an empty frame, not an
+    error, when the id doesn't exist - callers decide how to report that."""
+    return _load_single_applicant(conn, sk_id_curr)
+
+
 def _load_single_applicant(conn, sk_id_curr: int) -> pd.DataFrame:
     """Build the full feature row for one applicant via the same SQL used at
     training time, filtered to one id - guarantees prediction-time features
@@ -247,3 +256,14 @@ def get_risk_model() -> RiskModel:
             if _model is None:
                 _model = RiskModel()
     return _model
+
+
+def reset_risk_model() -> None:
+    """Drop the cached singleton, forcing the next `get_risk_model()` to
+    build a fresh one against the current settings. The API's routes call
+    `get_risk_model()` directly rather than through dependency injection, so
+    `tests/test_api.py` needs this to point a test client at a different
+    (or newly trained) model without restarting the process."""
+    global _model
+    with _model_lock:
+        _model = None

@@ -307,5 +307,18 @@ def get_talk_to_data() -> TalkToData:
     return _service
 
 
+def reset_talk_to_data() -> None:
+    """Drop the cached singleton.
+
+    `TalkToData` resolves and caches its own `client`/`catalog` on first
+    property access, so merely resetting `get_llm_client()`'s singleton
+    would not be enough on its own - an already-built `_service` would keep
+    its old client forever. Used by tests/test_api.py to flip between
+    "LLM available/unavailable" without restarting the process.
+    """
+    global _service
+    _service = None
+
+
 def ask(question: str) -> Answer:
     return get_talk_to_data().ask(question)

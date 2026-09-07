@@ -76,6 +76,37 @@ def test_explanation_serialises_only_computed_values(explainer_and_data) -> None
     assert payload["narrative"] is None  # narrate() not called by explain_one alone
 
 
+def test_narrate_prompt_uses_the_real_base_rate_not_shap_base_value(
+    explainer_and_data, monkeypatch
+) -> None:
+    """Regression test: an earlier version passed explanation.base_value
+    (SHAP's log-odds baseline, typically a negative number like -2.96) as
+    the prompt's "Portfolio average" - which rendered as "-296.1%". The
+    prompt must show the real portfolio default rate instead."""
+    from src.ml.explain import narrate
+
+    explainer, X, _ = explainer_and_data
+    explanation = explainer.explain_one(X.iloc[[0]])
+    assert explanation.base_value < 0  # sanity: it really is a log-odds value
+
+    captured = {}
+
+    class _StubClient:
+        available = True
+
+        def generate(self, *, role, system, user, **kwargs):
+            captured["user"] = user
+            from src.llm.gemini import LLMResponse, Usage
+            return LLMResponse(text="ok", usage=Usage(model="stub"))
+
+    monkeypatch.setattr("src.ml.explain.get_llm_client", lambda: _StubClient())
+    narrate(explanation, probability=0.1, band="Low", base_rate=0.0807)
+
+    assert "8.1%" in captured["user"] or "0.0807" in captured["user"]
+    assert "-296" not in captured["user"]
+    assert str(round(explanation.base_value, 1)) not in captured["user"]
+
+
 def test_narrate_reports_llm_unavailable_without_a_key(
     explainer_and_data, monkeypatch
 ) -> None:
@@ -95,7 +126,7 @@ def test_narrate_reports_llm_unavailable_without_a_key(
         lambda: GeminiClient(Settings(google_api_key="")),
     )
     with pytest.raises(LLMUnavailable):
-        narrate(explanation, probability=0.1, band="Low")
+        narrate(explanation, probability=0.1, band="Low", base_rate=0.08)
 
 
 def test_explain_and_narrate_degrades_gracefully_without_a_key(
@@ -114,7 +145,7 @@ def test_explain_and_narrate_degrades_gracefully_without_a_key(
         lambda: GeminiClient(Settings(google_api_key="")),
     )
     explanation = explain_and_narrate(
-        X.iloc[[0]], probability=0.1, band="Low", explainer=explainer,
+        X.iloc[[0]], probability=0.1, band="Low", base_rate=0.08, explainer=explainer,
     )
 
     assert explanation.narrative is None

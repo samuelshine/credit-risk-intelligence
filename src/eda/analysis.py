@@ -579,11 +579,21 @@ def run_all_insights(
     conn = conn or get_readonly_connection()
     results = []
     for fn in INSIGHT_FUNCTIONS:
-        with log_duration(log, f"insight: {fn.__name__}"):
-            try:
+        try:
+            with log_duration(log, f"insight: {fn.__name__}"):
                 results.append(fn(conn))
-            except duckdb.Error as exc:
-                log.warning("skipping %s: %s", fn.__name__, exc)
+        except Exception as exc:
+            # Broader than duckdb.Error on purpose: an insight can also fail
+            # with a plain Python error when a query legitimately returns
+            # fewer rows than the function assumes - e.g. the two-category
+            # insights (bureau overdue, previous refusal, ...) INNER JOIN a
+            # child-table aggregate and index into `rows[0]`/`rows[-1]`,
+            # which raises IndexError rather than a duckdb error when that
+            # child table has no rows for this database (a real state: a
+            # freshly created lite/sample/test database can legitimately
+            # have an empty bureau table). One insight failing this way
+            # should not take down the whole EDA build.
+            log.warning("skipping %s: %s", fn.__name__, exc)
     return results
 
 

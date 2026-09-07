@@ -338,3 +338,12 @@ def get_llm_client() -> GeminiClient:
             if _client is None:
                 _client = GeminiClient()
     return _client
+
+
+def reset_llm_client() -> None:
+    """Drop the cached singleton, so the next `get_llm_client()` rebuilds
+    against the current settings - used by tests/test_api.py to flip between
+    "key configured" and "key absent" without restarting the process."""
+    global _client
+    with _client_lock:
+        _client = None

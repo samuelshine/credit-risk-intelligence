@@ -197,12 +197,37 @@ def _format_factors_for_prompt(contributions: list[FeatureContribution]) -> str:
     return "\n".join(lines)
 
 
-def narrate(explanation: LocalExplanation, *, probability: float, band: str) -> str:
+#: Measured against the live API on this exact prompt shape: weighing several
+#: SHAP factors into a coherent explanation pushed `thinking_level="low"` to
+#: ~1,040 thought tokens - not the ~60-290 seen on simpler prompts elsewhere
+#: in this codebase. A 300-token budget left 10 tokens for the actual
+#: sentence and truncated it mid-word (finish_reason=MAX_TOKENS); even 700
+#: was consumed entirely by thinking with zero left for output. Gemini 3.x
+#: has no way to turn thinking off (see src/llm/gemini.py's docstring), and
+#: its cost is not a fixed per-call overhead but scales with how much the
+#: prompt asks the model to weigh - so this budget carries real headroom
+#: rather than the minimum observed, which is not a stable number to plan
+#: against.
+NARRATIVE_MAX_OUTPUT_TOKENS = 1500
+
+
+def narrate(
+    explanation: LocalExplanation, *, probability: float, band: str,
+    base_rate: float,
+) -> str:
     """Turn a local explanation into 2-4 plain-English sentences via Gemini.
 
     Grounded the same way the chatbot is: the model sees only the computed
-    contributions and the two summary numbers, never the database or the
-    model's internals, and is instructed to name nothing else.
+    contributions and the summary numbers, never the database or the model's
+    internals, and is instructed to name nothing else.
+
+    `base_rate` must be the actual portfolio default rate (e.g. 0.0807, from
+    `RiskModel.base_rate`) - NOT `explanation.base_value`, which is SHAP's
+    log-odds baseline (typically a negative number like -2.96). An earlier
+    version passed base_value here, so the prompt showed "Portfolio average:
+    -296.1%" - nonsensical, and only invisible because the same bug's sibling
+    (an undersized token budget) was truncating the response before the model
+    got far enough to try using it.
     """
     client = get_llm_client()
     if not client.available:
@@ -211,18 +236,18 @@ def narrate(explanation: LocalExplanation, *, probability: float, band: str) -> 
             "unavailable. The numeric factors below are still exact."
         )
     user = EXPLANATION_USER_PROMPT.format(
-        probability=probability, band=band, base_rate=explanation.base_value,
+        probability=probability, band=band, base_rate=base_rate,
         factors=_format_factors_for_prompt(explanation.contributions),
     )
     response = client.generate(
         role="summary", system=EXPLANATION_SYSTEM_PROMPT, user=user,
-        max_output_tokens=300,
+        max_output_tokens=NARRATIVE_MAX_OUTPUT_TOKENS,
     )
     return response.text
 
 
 def explain_and_narrate(
-    frame: pd.DataFrame, *, probability: float, band: str,
+    frame: pd.DataFrame, *, probability: float, band: str, base_rate: float,
     sk_id_curr: int | None = None, explainer: Explainer | None = None,
 ) -> LocalExplanation:
     """The full local-explanation path the API's `/api/explain` route calls:
@@ -231,7 +256,9 @@ def explain_and_narrate(
     explainer = explainer or get_explainer()
     explanation = explainer.explain_one(frame, sk_id_curr=sk_id_curr)
     try:
-        explanation.narrative = narrate(explanation, probability=probability, band=band)
+        explanation.narrative = narrate(
+            explanation, probability=probability, band=band, base_rate=base_rate,
+        )
     except LLMUnavailable as exc:
         explanation.narrative_error = str(exc)
     return explanation
@@ -250,6 +277,16 @@ def build_and_save_global_importance() -> dict[str, Any]:
 
 _explainer: Explainer | None = None
 _explainer_lock = threading.Lock()
+
+
+def reset_explainer() -> None:
+    """Drop the cached singleton and its `Explainer` (which itself caches a
+    SHAP `TreeExplainer` bound to whatever `RiskModel` was current when it was
+    built). Call alongside `reset_risk_model()` in tests, or a stale
+    explainer will keep pointing at the previous model's booster."""
+    global _explainer
+    with _explainer_lock:
+        _explainer = None
 
 
 def get_explainer() -> Explainer:

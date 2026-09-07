@@ -15,23 +15,7 @@ import re
 
 import pytest
 
-
-def _create_empty_child_tables(conn) -> None:
-    """Create every non-application child table with its real column set
-    (borrowed from tests/conftest.py's realistic schema), empty. The feature
-    SQL joins all of them regardless of what a test cares about, so it needs
-    every join target to exist with the right columns even when a test only
-    populates a couple of rows in one or two of them."""
-    import sys
-    from pathlib import Path
-    sys.path.insert(0, str(Path(__file__).parent))
-    from conftest import _TABLES  # local import: only used by tests
-
-    for table, (_, columns) in _TABLES.items():
-        if table == "application_train":
-            continue
-        ddl = ", ".join(f'"{name}" {dtype}' for name, dtype in columns)
-        conn.execute(f'CREATE TABLE "{table}" ({ddl})')
+from tests.conftest import create_empty_child_tables
 
 
 def test_feature_sql_has_a_deterministic_order_by() -> None:
@@ -60,7 +44,7 @@ def test_feature_query_returns_identical_row_order_across_calls(isolated_db) -> 
                -100 AS DAYS_ID_PUBLISH
         FROM range(500) t(i)
     """)
-    _create_empty_child_tables(conn)
+    create_empty_child_tables(conn)
 
     from src.data.features import build_feature_sql
     sql = build_feature_sql("application_train")
@@ -90,7 +74,7 @@ def test_load_features_separates_ids_target_and_excludes_them_from_the_frame(
                CASE WHEN i % 3 = 0 THEN 'A' ELSE 'B' END AS NAME_EDUCATION_TYPE
         FROM range(200) t(i)
     """)
-    _create_empty_child_tables(conn)
+    create_empty_child_tables(conn)
 
     from src.data.features import load_features
     matrix = load_features("application_train", conn=conn)

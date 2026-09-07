@@ -118,16 +118,17 @@ a real command executed, real output inspected) — not on "written but untested
   - [x] found and fixed 2 real bugs: `thinking_budget=0` rejected on Gemini 3.x (use `thinking_level` instead); summariser hallucinating truncation from seeing `LIMIT` in SQL it didn't need to see
 - [ ] `docs/PROMPTS.md` — prompt templates, token-optimisation numbers (measured), sample transcripts (real transcripts already captured this session, need writing up)
 
-## Phase 7 — FastAPI service
+## Phase 7 — FastAPI service ✅ done
 
-- [ ] `src/api/schemas.py` — Pydantic request/response models
-- [ ] `src/api/routes/eda.py` — serve `models/eda_artifacts.json` + chart images
-- [ ] `src/api/routes/score.py` — `/api/score` (applicant → probability, band)
-- [ ] `src/api/routes/explain.py` — `/api/explain` (SHAP + narrative)
-- [ ] `src/api/routes/rules.py` — `/api/rules`
-- [ ] `src/api/routes/ask.py` — `/api/ask` (talk-to-data)
-- [ ] `src/api/main.py` — app factory, static file mount, `/health`, startup checks
-- [ ] `tests/test_api.py` — httpx-based route tests (degraded-mode paths included: no DB, no LLM key)
+- [x] `src/api/schemas.py` — Pydantic request/response models
+- [x] `src/api/routes/eda.py` — serve `models/eda_artifacts.json` + chart images (path-traversal guarded)
+- [x] `src/api/routes/score.py` — `/api/score` (by id or hand-entered fields), `/api/applicants/sample`
+- [x] `src/api/routes/explain.py` — `/api/explain` (SHAP + narrative), re-scores server-side rather than trusting a client-supplied probability
+- [x] `src/api/routes/rules.py` — `/api/rules`
+- [x] `src/api/routes/ask.py` — `/api/ask` (talk-to-data)
+- [x] `src/api/main.py` — app factory, static file mount, `/health`, degrades gracefully with no DB/model/LLM
+- [x] `tests/test_api.py` — 20 tests, TestClient-based, all degraded-mode paths (no DB, no model, no LLM key) plus real trained-model success paths
+- [x] found and fixed 3 more real bugs via live testing (see docs/PROGRESS.md): explanation narrative silently truncated by Gemini 3.x's mandatory "thinking" consuming the entire token budget; the narrative prompt's "Portfolio average" was populated with SHAP's log-odds base value instead of the real base rate; EDA insights crashed the whole build with IndexError when a joined child table legitimately had zero rows
 
 ## Phase 8 — Frontend
 

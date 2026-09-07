@@ -11,25 +11,26 @@ Last updated: 2026-09-07 10:25 (local)
 
 ## Current phase
 
-**Phases 1-6 are all done**, verified against the real dataset and (where
-applicable) the live Gemini API. Moving into **Phase 7 — FastAPI service**
-next, which wires everything built so far behind HTTP routes for the UI.
+**Phases 1-7 are all done**, verified against the real dataset, the real
+trained model, and the live Gemini API — including running the actual
+`uvicorn` server and hitting every route with real `curl` requests, not just
+the automated test suite. Moving into **Phase 8 — Frontend** next.
 
 ## Current task
 
-Starting `src/api/schemas.py` and `src/api/main.py` — the FastAPI app
-factory and the request/response models the routes will use.
+Starting the frontend design pass (per the `frontend-design` skill) before
+writing any UI code: token plan (colour/type/layout), reviewed against the
+brief for generic defaults, then build.
 
 ## What's next (in order)
 
-1. `src/api/schemas.py`, `src/api/main.py` — app factory, `/health`, static mount
-2. `src/api/routes/*.py` — eda, score, explain, rules, ask
-3. `tests/test_api.py` — httpx-based route tests, including degraded-mode paths
+1. Frontend design pass, then `ui/index.html`, `ui/styles.css`, `ui/app.js`
+2. Chrome-driven walkthrough + screenshots of all 5 sections
+3. `docs/DESIGN.md` — token system + rationale, screenshots
 4. `docs/PROMPTS.md` — write up using the real transcripts and token counts already captured this session
-5. Frontend design pass (Phase 8), then the UI itself
-6. Docker + Render deployment (Phase 9)
-7. `notebooks/eda.py`/`.ipynb` (small remaining Phase 2 item, low priority)
-8. Final README + presentation PDF (Phase 10)
+5. Docker + Render deployment (Phase 9)
+6. `notebooks/eda.py`/`.ipynb` (small remaining Phase 2 item, low priority)
+7. Final README + presentation PDF (Phase 10)
 
 ## Blockers
 
@@ -87,6 +88,39 @@ None.
     an empty `DataFrame` one column at a time (~200 single-column inserts),
     which pandas itself flags as `PerformanceWarning: DataFrame is highly
     fragmented`. Fixed to build one dict then one `DataFrame(...)` call.
+
+## Real bugs found during Phase 7 (FastAPI service), found by starting the
+real `uvicorn` server and hitting every route with real `curl` requests -
+not just the automated test suite:
+
+11. **The `/api/explain` narrative was silently truncated mid-sentence.**
+    Gemini 3.x's mandatory "thinking" (see bug list above - there is no way
+    to disable it) consumed 286 of a 300-token budget on the explanation
+    prompt specifically, leaving 10 tokens for the actual sentence
+    (`finish_reason=MAX_TOKENS`). Worse, thinking cost for this prompt shape
+    turned out not to be a small fixed overhead like elsewhere in the
+    codebase (~60-290 tokens observed on simpler prompts) but scaled with
+    how much reasoning the prompt asked for - up to ~1,040 thought tokens
+    when weighing several SHAP factors into one coherent, constraint-heavy
+    explanation. Fixed by raising the budget to 1,500 tokens with real
+    headroom, not the observed minimum.
+12. **The same prompt's "Portfolio average" field showed `-296.1%`.** The
+    route was passing `explanation.base_value` - SHAP's log-odds baseline,
+    typically a negative number like -2.96 - into the slot meant for the
+    real portfolio default rate (~8.07%). Only invisible because bug #11 was
+    truncating the response before the model got far enough to render it.
+    Fixed by threading the real `RiskModel.base_rate` through
+    `explain_and_narrate`/`narrate` as its own parameter, with a docstring
+    explaining why it must never be `explanation.base_value`.
+13. **`run_all_insights` crashed the whole EDA build on `IndexError`.** The
+    two-category insights (bureau overdue, previous refusal, installment
+    lateness) `INNER JOIN` a child-table aggregate and index into
+    `rows[0]`/`rows[-1]`, which raises a plain `IndexError` - not a
+    `duckdb.Error` - when that child table legitimately has zero rows for
+    the current database. The catch clause only caught `duckdb.Error`, so
+    this exception escaped `run_all_insights` entirely rather than skipping
+    just the one insight. Widened to catch `Exception` broadly, with a
+    comment explaining why that breadth is deliberate here.
 
 ## Real data, confirmed
 
@@ -151,15 +185,15 @@ rest — worth being honest about in the final documentation.
 | 4 — Explainable AI | ✅ done, real SHAP rankings + narrative generation |
 | 5 — Business rules | ✅ done, 16 real rules extracted |
 | 6 — Talk-to-data | ✅ done, live-tested against real Gemini API |
-| 7 — FastAPI service | 🔵 starting now |
-| 8 — Frontend | ⬜ not started |
+| 7 — FastAPI service | ✅ done, real server hit with real curl requests |
+| 8 — Frontend | 🔵 starting now |
 | 9 — Docker & deployment | ⬜ not started |
 | 10 — Documentation & presentation | 🔵 in progress (TASKS/PROGRESS/EDA_FINDINGS/MODEL_CARD done; README etc. pending) |
 
 ## Test suite state
 
 `PYTHONPATH=. .venv/bin/python -m pytest tests/ -q --deselect tests/test_gemini_live.py`
-→ 123 passed (fully offline, no network/API key required).
+→ 144 passed (fully offline, no network/API key required).
 
 `PYTHONPATH=. .venv/bin/python -m pytest tests/test_gemini_live.py -v`
 → 5 passed (live, needs `GOOGLE_API_KEY`; makes real, tiny-cost API calls).
@@ -175,6 +209,7 @@ rest — worth being honest about in the final documentation.
 - `test_explain.py` — 7 (SHAP grounding, signal recovery, LLM-unavailable degradation)
 - `test_rules.py` — 8 (exact-value fidelity/lift assertions against a known-answer fixture)
 - `test_evaluate.py` — 8 (KS/lift/confusion-matrix against known constructed cases)
+- `test_api.py` — 20 (TestClient HTTP tests: routing, validation, degraded-mode paths, real trained-model success paths)
 - `test_gemini_live.py` — 5 (live API contract checks, skipped without a key)
 
 `tests/conftest_ml.py` is a shared (non-auto-loaded) helper: trains and saves
