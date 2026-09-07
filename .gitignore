@@ -1,0 +1,48 @@
+# ---- Dataset (never committed; mounted into the container) ---------------
+# Leading slash anchors these to the repo root, so `src/data/` - which is
+# source code - is not swept up by the `data/` rule.
+/data/
+*.duckdb
+*.duckdb.wal
+*.csv.zip
+
+# ---- Model artifacts ------------------------------------------------------
+# Trained artifacts are reproducible via `python -m src.ml.train`. The small,
+# demo-critical ones are negated below so a fresh clone can score an applicant
+# without retraining first.
+/models/*
+!/models/.gitkeep
+!/models/model.txt
+!/models/feature_list.json
+!/models/calibrator.pkl
+!/models/bands.json
+!/models/rules.json
+!/models/metrics.json
+!/models/eda_artifacts.json
+!/models/threshold.json
+!/models/imbalance_comparison.json
+!/models/train_summary.json
+!/models/shap_global.json
+!/models/charts/
+/models/charts/*.pdf
+
+# ---- Python ---------------------------------------------------------------
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# ---- Secrets --------------------------------------------------------------
+.env
+.env.local
+kaggle.json
+access_token
+
+# ---- OS / editor ----------------------------------------------------------
+.DS_Store
+.idea/
+.vscode/

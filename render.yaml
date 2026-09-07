@@ -1,0 +1,86 @@
+# Render Blueprint — Credit Risk Intelligence Platform
+#
+# One web service, not the two (etl + api) that docker-compose runs locally.
+# Render attaches a persistent disk to a single instance, and the disk is not
+# mounted during build, so ingestion has to happen at runtime inside the web
+# service itself: AUTO_INGEST_ON_STARTUP makes the API build the database in
+# a background thread on first boot (see src/api/main.py). /health answers
+# immediately while that runs, so Render's health check does not kill the
+# container mid-ingest, and every DB-dependent route returns a clear 503
+# until the build completes.
+#
+# Deploy: push this file, then open
+#   https://dashboard.render.com/blueprint/new?repo=https://github.com/samuelshine/credit-risk-intelligence
+# and fill in the two secrets below.
+
+services:
+  - type: web
+    name: credit-risk-platform
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerCommand: uvicorn src.api.main:app --host 0.0.0.0 --port $PORT
+
+    # 2 GB is the practical floor. The full ETL streams 2.7 GB of CSV into
+    # DuckDB with a memory limit set below, and SHAP + LightGBM inference
+    # need headroom on top. `starter` (512 MB) will OOM during ingestion.
+    plan: standard
+
+    healthCheckPath: /health
+    autoDeploy: true
+
+    disk:
+      name: credit-data
+      mountPath: /app/data
+      # ~2.7 GB of extracted CSVs + ~3.2 GB DuckDB file, plus room for the
+      # ~700 MB zip that is downloaded then deleted during extraction.
+      sizeGB: 15
+
+    envVars:
+      # --- Secrets: filled in the Render dashboard, never committed --------
+      - key: GOOGLE_API_KEY
+        sync: false
+      # Needed only for the automatic dataset download. The Kaggle account
+      # must also have accepted the competition rules in a browser first -
+      # a valid token alone still gets a 403 until it has.
+      - key: KAGGLE_API_TOKEN
+        sync: false
+
+      # --- Ingestion ------------------------------------------------------
+      # The API builds the database itself here; there is no etl container.
+      - key: AUTO_INGEST_ON_STARTUP
+        value: "true"
+      - key: DATA_MODE
+        value: full
+
+      # --- Paths (match the disk mount above) -----------------------------
+      - key: DATA_DIR
+        value: /app/data
+      - key: DUCKDB_PATH
+        value: /app/data/credit_risk.duckdb
+      - key: MODELS_DIR
+        value: /app/models
+
+      # --- Resource limits ------------------------------------------------
+      # Well under the 2 GB instance: DuckDB spills to disk past this rather
+      # than being OOM-killed, which is the failure mode worth having.
+      - key: DUCKDB_MEMORY_LIMIT
+        value: 1GB
+      - key: DUCKDB_THREADS
+        value: "2"
+
+      # --- Models -----------------------------------------------------------
+      - key: GEMINI_MODEL_SQL
+        value: gemini-3.7-flash
+      - key: GEMINI_MODEL_SUMMARY
+        value: gemini-3.5-flash-lite
+
+      # --- Talk-to-data guardrails -----------------------------------------
+      - key: MAX_SQL_ROWS
+        value: "500"
+      - key: SQL_TIMEOUT_SECONDS
+        value: "30"
+      - key: MAX_SUMMARY_ROWS
+        value: "50"
+
+      - key: LOG_LEVEL
+        value: INFO

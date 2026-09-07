@@ -1,0 +1,156 @@
+{
+  "base_value": -2.9605,
+  "sample_size": 5000,
+  "ranking": [
+    {
+      "feature": "EXT_SOURCE_MEAN",
+      "label": "Ext source mean",
+      "mean_abs_shap": 0.40429
+    },
+    {
+      "feature": "CODE_GENDER",
+      "label": "Code gender",
+      "mean_abs_shap": 0.10449
+    },
+    {
+      "feature": "ORGANIZATION_TYPE",
+      "label": "Organization type",
+      "mean_abs_shap": 0.09899
+    },
+    {
+      "feature": "CREDIT_GOODS_RATIO",
+      "label": "Credit goods ratio",
+      "mean_abs_shap": 0.09348
+    },
+    {
+      "feature": "POS_REMAINING_MEAN",
+      "label": "Pos remaining mean",
+      "mean_abs_shap": 0.09072
+    },
+    {
+      "feature": "CREDIT_TERM",
+      "label": "Credit term",
+      "mean_abs_shap": 0.09043
+    },
+    {
+      "feature": "INST_LATE_RATIO",
+      "label": "Inst late ratio",
+      "mean_abs_shap": 0.08684
+    },
+    {
+      "feature": "AMT_ANNUITY",
+      "label": "Amt annuity",
+      "mean_abs_shap": 0.07773
+    },
+    {
+      "feature": "OWN_CAR_AGE",
+      "label": "Own car age",
+      "mean_abs_shap": 0.07497
+    },
+    {
+      "feature": "EXT_SOURCE_MAX",
+      "label": "Ext source max",
+      "mean_abs_shap": 0.07208
+    },
+    {
+      "feature": "BUR_DEBT_CREDIT_RATIO",
+      "label": "Bur debt credit ratio",
+      "mean_abs_shap": 0.06741
+    },
+    {
+      "feature": "PREV_TERM_MEAN",
+      "label": "Prev term mean",
+      "mean_abs_shap": 0.0661
+    },
+    {
+      "feature": "NAME_EDUCATION_TYPE",
+      "label": "Name education type",
+      "mean_abs_shap": 0.06441
+    },
+    {
+      "feature": "PREV_GRANTED_RATIO",
+      "label": "Prev granted ratio",
+      "mean_abs_shap": 0.06176
+    },
+    {
+      "feature": "NAME_FAMILY_STATUS",
+      "label": "Name family status",
+      "mean_abs_shap": 0.05812
+    },
+    {
+      "feature": "EXT_SOURCE_PRODUCT",
+      "label": "Ext source product",
+      "mean_abs_shap": 0.0509
+    },
+    {
+      "feature": "EXT_SOURCE_3",
+      "label": "Ext source 3",
+      "mean_abs_shap": 0.05086
+    },
+    {
+      "feature": "YEARS_EMPLOYED",
+      "label": "Years employed",
+      "mean_abs_shap": 0.04894
+    },
+    {
+      "feature": "POS_MONTHS",
+      "label": "Pos months",
+      "mean_abs_shap": 0.04868
+    },
+    {
+      "feature": "OCCUPATION_TYPE",
+      "label": "Occupation type",
+      "mean_abs_shap": 0.04819
+    },
+    {
+      "feature": "EXT_SOURCE_MIN",
+      "label": "Ext source min",
+      "mean_abs_shap": 0.04805
+    },
+    {
+      "feature": "PREV_REFUSAL_RATE",
+      "label": "Prev refusal rate",
+      "mean_abs_shap": 0.0475
+    },
+    {
+      "feature": "DAYS_BIRTH",
+      "label": "Days birth",
+      "mean_abs_shap": 0.04584
+    },
+    {
+      "feature": "ANNUITY_INCOME_RATIO",
+      "label": "Annuity income ratio",
+      "mean_abs_shap": 0.04495
+    },
+    {
+      "feature": "INST_LAST_DUE",
+      "label": "Inst last due",
+      "mean_abs_shap": 0.04396
+    },
+    {
+      "feature": "EXT_SOURCE_1",
+      "label": "Ext source 1",
+      "mean_abs_shap": 0.04344
+    },
+    {
+      "feature": "AMT_GOODS_PRICE",
+      "label": "Amt goods price",
+      "mean_abs_shap": 0.04094
+    },
+    {
+      "feature": "BUR_MAX_OVERDUE_EVER",
+      "label": "Bur max overdue ever",
+      "mean_abs_shap": 0.04012
+    },
+    {
+      "feature": "INST_COUNT",
+      "label": "Inst count",
+      "mean_abs_shap": 0.03965
+    },
+    {
+      "feature": "BUR_DAYS_CREDIT_MAX",
+      "label": "Bur days credit max",
+      "mean_abs_shap": 0.03493
+    }
+  ]
+}

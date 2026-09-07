@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Credit Risk Intelligence Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<div class="app">
+  <nav class="rail" aria-label="Sections">
+    <div class="rail-mark">CR</div>
+    <button class="rail-item is-active" data-section="portfolio">
+      <span class="rail-num">1</span> The portfolio
+    </button>
+    <button class="rail-item" data-section="score">
+      <span class="rail-num">2</span> Score an applicant
+    </button>
+    <button class="rail-item" data-section="why">
+      <span class="rail-num">3</span> Why this score
+    </button>
+    <button class="rail-item" data-section="rules">
+      <span class="rail-num">4</span> Policy rules
+    </button>
+    <button class="rail-item" data-section="ask">
+      <span class="rail-num">5</span> Ask the data
+    </button>
+    <div class="rail-status" id="rail-status" hidden></div>
+  </nav>
+
+  <main class="content">
+
+    <!-- ============================== PORTFOLIO ============================== -->
+    <section class="panel is-active" id="section-portfolio">
+      <header class="panel-head">
+        <h1>The portfolio</h1>
+        <p class="lede">307,511 loan applications from the Home Credit Default Risk
+          dataset. What the data holds, where it's incomplete, and eight findings
+          worth a credit team's attention.</p>
+      </header>
+
+      <div id="portfolio-loading" class="loading">Loading the portfolio summary…</div>
+      <div id="portfolio-body" hidden>
+
+        <h2>Dataset summary</h2>
+        <div class="strip"><div class="table-wrap"><table id="table-summary"></table></div></div>
+
+        <h2>Data quality</h2>
+        <p>Six checks run directly against the live database — nothing here is
+          asserted from memory.</p>
+        <div class="strip"><ul class="quality-list" id="quality-list"></ul></div>
+
+        <h2>Business insights</h2>
+        <p>Each finding is backed by its own query and chart; the headline number
+          is computed at request time, never hard-coded.</p>
+        <div class="insight-list" id="insight-list"></div>
+
+      </div>
+    </section>
+
+    <!-- ================================ SCORE ================================ -->
+    <section class="panel" id="section-score">
+      <header class="panel-head">
+        <h1>Score an applicant</h1>
+        <p class="lede">Pick a real applicant from the portfolio, or enter details
+          by hand. Either way the same model scores it the same way.</p>
+      </header>
+
+      <div class="score-tabs">
+        <button class="tab-btn is-active" data-tab="pick">Pick a real applicant</button>
+        <button class="tab-btn" data-tab="manual">Enter details</button>
+      </div>
+
+      <div class="tab-panel is-active" data-tab-panel="pick">
+        <div class="strip">
+          <table class="picker-table" id="applicant-picker">
+            <thead><tr><th>ID</th><th>Income</th><th>Credit</th><th>Gender</th><th>Education</th><th>Outcome</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <button class="btn-ghost" id="reload-sample">Show a different 20</button>
+      </div>
+
+      <div class="tab-panel" data-tab-panel="manual">
+        <form class="manual-form" id="manual-form">
+          <label>Annual income
+            <input type="number" name="AMT_INCOME_TOTAL" placeholder="e.g. 157500" required>
+          </label>
+          <label>Loan amount requested
+            <input type="number" name="AMT_CREDIT" placeholder="e.g. 450000" required>
+          </label>
+          <label>Annuity (yearly repayment)
+            <input type="number" name="AMT_ANNUITY" placeholder="e.g. 28000">
+          </label>
+          <label>Age (years)
+            <input type="number" name="AGE_YEARS" placeholder="e.g. 35">
+          </label>
+          <label>Years employed
+            <input type="number" name="YEARS_EMPLOYED" placeholder="e.g. 6" step="0.1">
+          </label>
+          <label>Gender
+            <select name="CODE_GENDER"><option value="">—</option><option>F</option><option>M</option></select>
+          </label>
+          <label>Education
+            <select name="NAME_EDUCATION_TYPE">
+              <option value="">—</option>
+              <option>Secondary / secondary special</option>
+              <option>Higher education</option>
+              <option>Incomplete higher</option>
+              <option>Lower secondary</option>
+              <option>Academic degree</option>
+            </select>
+          </label>
+          <label>External credit score (0–1, if known)
+            <input type="number" name="EXT_SOURCE_2" placeholder="e.g. 0.55" min="0" max="1" step="0.01">
+          </label>
+          <button type="submit" class="btn-primary">Score this applicant</button>
+        </form>
+      </div>
+
+      <div class="result" id="score-result" hidden>
+        <div class="result-headline">
+          <div class="result-prob" id="result-prob">—</div>
+          <div class="result-meta">
+            <div class="band-pill" id="result-band">—</div>
+            <div class="result-sub" id="result-sub"></div>
+          </div>
+        </div>
+        <div class="ruler-wrap">
+          <div class="ruler" id="score-ruler">
+            <div class="ruler-track">
+              <div class="ruler-zone low"></div>
+              <div class="ruler-zone medium"></div>
+              <div class="ruler-zone high"></div>
+              <div class="ruler-mark" id="ruler-mark"></div>
+            </div>
+            <div class="ruler-labels"><span>Low</span><span>Medium</span><span>High</span></div>
+          </div>
+        </div>
+        <button class="btn-ghost" id="explain-this">Explain this score →</button>
+      </div>
+    </section>
+
+    <!-- ================================= WHY ================================= -->
+    <section class="panel" id="section-why">
+      <header class="panel-head">
+        <h1>Why this score</h1>
+        <p class="lede">Score an applicant first — the factors that moved their
+          score come from the exact same request, so an explanation can never
+          disagree with the number it's explaining.</p>
+      </header>
+
+      <div id="why-empty" class="empty-state">
+        <p>No applicant scored yet. <button class="link-btn" data-section="score">Go score one →</button></p>
+      </div>
+
+      <div id="why-body" hidden>
+        <div class="ruler-wrap" id="why-ruler-wrap"></div>
+        <div id="why-narrative" class="narrative"></div>
+        <h2>What moved the score</h2>
+        <div class="factor-chart" id="factor-chart"></div>
+      </div>
+    </section>
+
+    <!-- ================================ RULES ================================= -->
+    <section class="panel" id="section-rules">
+      <header class="panel-head">
+        <h1>Policy rules</h1>
+        <p class="lede">A simplified, four-question decision tree fit to
+          approximate the model's score — the kind of checklist a credit
+          policy document could contain. Every number below is measured
+          directly against real outcomes for applicants matching that rule,
+          not read off the tree's own prediction.</p>
+      </header>
+      <div id="rules-loading" class="loading">Loading policy rules…</div>
+      <div id="rules-body" hidden>
+        <div class="fidelity-note" id="fidelity-note"></div>
+        <ol class="rule-list" id="rule-list"></ol>
+      </div>
+    </section>
+
+    <!-- ================================= ASK ================================= -->
+    <section class="panel" id="section-ask">
+      <header class="panel-head">
+        <h1>Ask the data</h1>
+        <p class="lede">Ask a plain-English question about the portfolio. The
+          SQL that ran is always shown next to the answer, so nothing here is
+          asserted without a query behind it.</p>
+      </header>
+
+      <form class="ask-form" id="ask-form">
+        <input type="text" id="ask-input" placeholder="e.g. How does default rate differ by gender?" maxlength="500" required>
+        <button type="submit" class="btn-primary">Ask</button>
+      </form>
+
+      <div class="ask-examples">
+        <span>Try:</span>
+        <button type="button" class="example-chip">What is the overall default rate?</button>
+        <button type="button" class="example-chip">Which education level defaults most?</button>
+        <button type="button" class="example-chip">Do clients with overdue bureau credit default more?</button>
+      </div>
+
+      <div id="ask-thread"></div>
+    </section>
+
+  </main>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>

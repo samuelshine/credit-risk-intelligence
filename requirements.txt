@@ -1,0 +1,32 @@
+# Credit Risk Intelligence Platform - runtime dependencies
+# Resolved and smoke-tested on CPython 3.12 (see Dockerfile base image).
+
+# ---- Data & storage ------------------------------------------------------
+duckdb==1.5.5                # embedded analytical SQL engine: ETL, features, chatbot
+pandas==2.3.3
+numpy==2.5.3
+pyarrow==25.0.1
+
+# ---- Machine learning ----------------------------------------------------
+scikit-learn==1.9.0
+lightgbm==4.7.0              # primary model: native NaN + categorical handling
+imbalanced-learn==0.14.2      # SMOTE / undersampling arms of the imbalance study
+shap==0.52.0                  # TreeExplainer for per-applicant explanations
+joblib==1.6.0
+
+# ---- Charts (EDA artifacts rendered once, offline) -----------------------
+matplotlib==3.11.1
+
+# ---- LLM & talk-to-data --------------------------------------------------
+google-genai==2.22.0          # Gemini SDK
+sqlglot==30.18.0               # SQL parsed to an AST for validation, never regex
+
+# ---- API service ---------------------------------------------------------
+fastapi==0.141.1
+uvicorn==0.52.4
+pydantic==2.13.5
+pydantic-settings==2.15.0
+python-dotenv==1.2.3
+
+# ---- Dataset acquisition -------------------------------------------------
+kaggle==2.2.4                # v2 SDK: KAGGLE_API_TOKEN, not the legacy kaggle.json

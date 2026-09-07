@@ -1,0 +1,235 @@
+{
+  "fidelity": {
+    "r2_vs_calibrated_score": 0.4885,
+    "roc_auc_vs_actual_target": 0.7207,
+    "full_model_roc_auc_vs_actual_target": 0.8766
+  },
+  "base_rate": 0.08072881945686496,
+  "n_rules": 16,
+  "rules": [
+    {
+      "conditions": [
+        "Ext source mean <= 0.395",
+        "Ext source mean <= 0.253",
+        "Ext source min <= 0.121",
+        "Credit goods ratio > 1.16"
+      ],
+      "sentence": "IF Ext source mean <= 0.395 AND Ext source mean <= 0.253 AND Ext source min <= 0.121 AND Credit goods ratio > 1.16 THEN 1.5% of applicants (4,554), observed default rate 36.3% (4.5x base rate)",
+      "population_share": 0.0148,
+      "n_applicants": 4554,
+      "observed_default_rate": 0.363,
+      "lift_over_base_rate": 4.5,
+      "mean_predicted_score": 0.3609
+    },
+    {
+      "conditions": [
+        "Ext source mean <= 0.395",
+        "Ext source mean <= 0.253",
+        "Ext source min <= 0.121",
+        "Credit goods ratio <= 1.16"
+      ],
+      "sentence": "IF Ext source mean <= 0.395 AND Ext source mean <= 0.253 AND Ext source min <= 0.121 AND Credit goods ratio <= 1.16 THEN 1.8% of applicants (5,443), observed default rate 25.9% (3.2x base rate)",
+      "population_share": 0.0177,
+      "n_applicants": 5443,
+      "observed_default_rate": 0.2592,
+      "lift_over_base_rate": 3.21,
+      "mean_predicted_score": 0.2635
+    },
+    {
+      "conditions": [
+        "Ext source mean <= 0.395",
+        "Ext source mean > 0.253",
+        "Prev refusal rate > 0.311",
+        "Credit goods ratio > 1.16"
+      ],
+      "sentence": "IF Ext source mean <= 0.395 AND Ext source mean > 0.253 AND Prev refusal rate > 0.311 AND Credit goods ratio > 1.16 THEN 1.3% of applicants (4,046), observed default rate 23.1% (2.9x base rate)",
+      "population_share": 0.0132,
+      "n_applicants": 4046,
+      "observed_default_rate": 0.2313,
+      "lift_over_base_rate": 2.87,
+      "mean_predicted_score": 0.2492
+    },
+    {
+      "conditions": [
+        "Ext source mean <= 0.395",
+        "Ext source mean <= 0.253",
+        "Ext source min > 0.121",
+        "Years employed <= 11.6"
+      ],
+      "sentence": "IF Ext source mean <= 0.395 AND Ext source mean <= 0.253 AND Ext source min > 0.121 AND Years employed <= 11.6 THEN 2.1% of applicants (6,400), observed default rate 22.9% (2.8x base rate)",
+      "population_share": 0.0208,
+      "n_applicants": 6400,
+      "observed_default_rate": 0.2292,
+      "lift_over_base_rate": 2.84,
+      "mean_predicted_score": 0.2329
+    },
+    {
+      "conditions": [
+        "Ext source mean <= 0.395",
+        "Ext source mean > 0.253",
+        "Prev refusal rate <= 0.311",
+        "Credit goods ratio > 1.21"
+      ],
+      "sentence": "IF Ext source mean <= 0.395 AND Ext source mean > 0.253 AND Prev refusal rate <= 0.311 AND Credit goods ratio > 1.21 THEN 3.1% of applicants (9,518), observed default rate 18.2% (2.3x base rate)",
+      "population_share": 0.031,
+      "n_applicants": 9518,
+      "observed_default_rate": 0.1824,
+      "lift_over_base_rate": 2.26,
+      "mean_predicted_score": 0.1877
+    },
+    {
+      "conditions": [
+        "Ext source mean <= 0.395",
+        "Ext source mean > 0.253",
+        "Prev refusal rate > 0.311",
+        "Credit goods ratio <= 1.16"
+      ],
+      "sentence": "IF Ext source mean <= 0.395 AND Ext source mean > 0.253 AND Prev refusal rate > 0.311 AND Credit goods ratio <= 1.16 THEN 1.8% of applicants (5,600), observed default rate 17.6% (2.2x base rate)",
+      "population_share": 0.0182,
+      "n_applicants": 5600,
+      "observed_default_rate": 0.1761,
+      "lift_over_base_rate": 2.18,
+      "mean_predicted_score": 0.186
+    },
+    {
+      "conditions": [
+        "Ext source mean > 0.395",
+        "Ext source mean <= 0.517",
+        "Prev granted ratio > 1.06",
+        "Cc drawings count mean > 1.14"
+      ],
+      "sentence": "IF Ext source mean > 0.395 AND Ext source mean <= 0.517 AND Prev granted ratio > 1.06 AND Cc drawings count mean > 1.14 THEN 0.8% of applicants (2,501), observed default rate 16.6% (2.1x base rate)",
+      "population_share": 0.0081,
+      "n_applicants": 2501,
+      "observed_default_rate": 0.1663,
+      "lift_over_base_rate": 2.06,
+      "mean_predicted_score": 0.1729
+    },
+    {
+      "conditions": [
+        "Ext source mean <= 0.395",
+        "Ext source mean > 0.253",
+        "Prev refusal rate <= 0.311",
+        "Credit goods ratio <= 1.21"
+      ],
+      "sentence": "IF Ext source mean <= 0.395 AND Ext source mean > 0.253 AND Prev refusal rate <= 0.311 AND Credit goods ratio <= 1.21 THEN 9.4% of applicants (29,003), observed default rate 12.8% (1.6x base rate)",
+      "population_share": 0.0943,
+      "n_applicants": 29003,
+      "observed_default_rate": 0.128,
+      "lift_over_base_rate": 1.58,
+      "mean_predicted_score": 0.1303
+    },
+    {
+      "conditions": [
+        "Ext source mean <= 0.395",
+        "Ext source mean <= 0.253",
+        "Ext source min > 0.121",
+        "Years employed > 11.6"
+      ],
+      "sentence": "IF Ext source mean <= 0.395 AND Ext source mean <= 0.253 AND Ext source min > 0.121 AND Years employed > 11.6 THEN 0.7% of applicants (2,091), observed default rate 12.6% (1.6x base rate)",
+      "population_share": 0.0068,
+      "n_applicants": 2091,
+      "observed_default_rate": 0.1258,
+      "lift_over_base_rate": 1.56,
+      "mean_predicted_score": 0.1355
+    },
+    {
+      "conditions": [
+        "Ext source mean > 0.395",
+        "Ext source mean <= 0.517",
+        "Prev granted ratio > 1.06",
+        "Cc drawings count mean <= 1.14"
+      ],
+      "sentence": "IF Ext source mean > 0.395 AND Ext source mean <= 0.517 AND Prev granted ratio > 1.06 AND Cc drawings count mean <= 1.14 THEN 7.2% of applicants (22,197), observed default rate 10.2% (1.3x base rate)",
+      "population_share": 0.0722,
+      "n_applicants": 22197,
+      "observed_default_rate": 0.1017,
+      "lift_over_base_rate": 1.26,
+      "mean_predicted_score": 0.1056
+    },
+    {
+      "conditions": [
+        "Ext source mean > 0.395",
+        "Ext source mean <= 0.517",
+        "Prev granted ratio <= 1.06",
+        "Credit goods ratio > 1.16"
+      ],
+      "sentence": "IF Ext source mean > 0.395 AND Ext source mean <= 0.517 AND Prev granted ratio <= 1.06 AND Credit goods ratio > 1.16 THEN 6.4% of applicants (19,590), observed default rate 9.1% (1.1x base rate)",
+      "population_share": 0.0637,
+      "n_applicants": 19590,
+      "observed_default_rate": 0.0906,
+      "lift_over_base_rate": 1.12,
+      "mean_predicted_score": 0.0919
+    },
+    {
+      "conditions": [
+        "Ext source mean > 0.395",
+        "Ext source mean > 0.517",
+        "Ext source max <= 0.686",
+        "Inst late ratio > 0.0866"
+      ],
+      "sentence": "IF Ext source mean > 0.395 AND Ext source mean > 0.517 AND Ext source max <= 0.686 AND Inst late ratio > 0.0866 THEN 5.4% of applicants (16,561), observed default rate 6.9% (0.9x base rate)",
+      "population_share": 0.0539,
+      "n_applicants": 16561,
+      "observed_default_rate": 0.0691,
+      "lift_over_base_rate": 0.86,
+      "mean_predicted_score": 0.0702
+    },
+    {
+      "conditions": [
+        "Ext source mean > 0.395",
+        "Ext source mean <= 0.517",
+        "Prev granted ratio <= 1.06",
+        "Credit goods ratio <= 1.16"
+      ],
+      "sentence": "IF Ext source mean > 0.395 AND Ext source mean <= 0.517 AND Prev granted ratio <= 1.06 AND Credit goods ratio <= 1.16 THEN 12.1% of applicants (37,105), observed default rate 6.2% (0.8x base rate)",
+      "population_share": 0.1207,
+      "n_applicants": 37105,
+      "observed_default_rate": 0.0619,
+      "lift_over_base_rate": 0.77,
+      "mean_predicted_score": 0.0631
+    },
+    {
+      "conditions": [
+        "Ext source mean > 0.395",
+        "Ext source mean > 0.517",
+        "Ext source max > 0.686",
+        "Ext source mean <= 0.564"
+      ],
+      "sentence": "IF Ext source mean > 0.395 AND Ext source mean > 0.517 AND Ext source max > 0.686 AND Ext source mean <= 0.564 THEN 4.3% of applicants (13,341), observed default rate 4.8% (0.6x base rate)",
+      "population_share": 0.0434,
+      "n_applicants": 13341,
+      "observed_default_rate": 0.0483,
+      "lift_over_base_rate": 0.6,
+      "mean_predicted_score": 0.0484
+    },
+    {
+      "conditions": [
+        "Ext source mean > 0.395",
+        "Ext source mean > 0.517",
+        "Ext source max <= 0.686",
+        "Inst late ratio <= 0.0866"
+      ],
+      "sentence": "IF Ext source mean > 0.395 AND Ext source mean > 0.517 AND Ext source max <= 0.686 AND Inst late ratio <= 0.0866 THEN 14.5% of applicants (44,455), observed default rate 4.3% (0.5x base rate)",
+      "population_share": 0.1446,
+      "n_applicants": 44455,
+      "observed_default_rate": 0.0428,
+      "lift_over_base_rate": 0.53,
+      "mean_predicted_score": 0.0433
+    },
+    {
+      "conditions": [
+        "Ext source mean > 0.395",
+        "Ext source mean > 0.517",
+        "Ext source max > 0.686",
+        "Ext source mean > 0.564"
+      ],
+      "sentence": "IF Ext source mean > 0.395 AND Ext source mean > 0.517 AND Ext source max > 0.686 AND Ext source mean > 0.564 THEN 27.7% of applicants (85,106), observed default rate 2.6% (0.3x base rate)",
+      "population_share": 0.2768,
+      "n_applicants": 85106,
+      "observed_default_rate": 0.0261,
+      "lift_over_base_rate": 0.32,
+      "mean_predicted_score": 0.025
+    }
+  ]
+}
