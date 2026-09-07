@@ -152,8 +152,25 @@ def _download_from_kaggle(dest_dir: Path) -> Path:
     api = KaggleApi()
     api.authenticate()
     dest_dir.mkdir(parents=True, exist_ok=True)
-    with log_duration(log, f"download {COMPETITION} from Kaggle (~700 MB)"):
-        api.competition_download_files(COMPETITION, path=str(dest_dir), quiet=False)
+    try:
+        with log_duration(log, f"download {COMPETITION} from Kaggle (~700 MB)"):
+            api.competition_download_files(COMPETITION, path=str(dest_dir), quiet=False)
+    except Exception as exc:
+        # The SDK raises requests.HTTPError, not DatasetUnavailable, on a 403 -
+        # which is what Kaggle returns for a valid token that has not accepted
+        # the competition's rules yet, not for a bad token. Distinguishing the
+        # two here saves a confusing raw traceback for the common case.
+        status = getattr(getattr(exc, "response", None), "status_code", None)
+        if status == 403:
+            raise DatasetUnavailable(
+                f"Kaggle rejected the download (403 Forbidden). Your token is "
+                f"valid, but this competition requires accepting its rules in "
+                f"the browser first - the API enforces that separately from "
+                f"authentication:\n"
+                f"  https://www.kaggle.com/competitions/{COMPETITION}/rules\n"
+                f"Click 'I Understand and Accept' there, then rerun this."
+            ) from exc
+        raise
 
     zip_path = dest_dir / ZIP_NAME
     if not zip_path.exists():
