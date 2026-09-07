@@ -12,8 +12,25 @@ need three tools:
 
 Two connection flavours, and the distinction is a security boundary rather than
 a convenience: ETL and training open read-write; anything touching
-LLM-generated SQL opens **read-only**. Even if a malicious query slipped past
-`sql_validator`, DuckDB itself would reject the write.
+LLM-generated SQL opens **read-only** *and* with external access disabled.
+
+That second flag matters more than it looks. A plain read-only DuckDB
+connection still happily runs `read_csv('/etc/passwd')`, `glob('/etc/*')` and
+even `COPY ... TO '/tmp/out.csv'` - read-only protects the *database*, not the
+filesystem. Measured on DuckDB 1.5.5:
+
+    read-only alone                  read-only + enable_external_access=false
+    ------------------------------   ----------------------------------------
+    read_csv arbitrary file  ALLOW   read_csv arbitrary file        PermissionException
+    glob filesystem          ALLOW   glob filesystem                PermissionException
+    COPY TO file             ALLOW   COPY TO file                   PermissionException
+    ATTACH another database  ALLOW   ATTACH another database        PermissionException
+
+`enable_external_access` is a locked setting: once the database is open
+read-only it cannot be turned back on from inside a query, so a generated
+query cannot escalate its own privileges. This is the outermost of three
+layers - the others are AST validation in `talk_to_data.sql_validator` and the
+read-only handle itself.
 """
 
 from __future__ import annotations
@@ -102,7 +119,13 @@ def get_readonly_connection(
                 f"Build it with: python -m src.data.loader"
             )
 
-        conn = duckdb.connect(str(path), read_only=True)
+        conn = duckdb.connect(
+            str(path),
+            read_only=True,
+            # Locked at connect time; see the module docstring. Without this a
+            # generated query can read any file the process can read.
+            config={"enable_external_access": "false"},
+        )
         _apply_pragmas(conn, settings)
         log.info("opened read-only DuckDB connection at %s", path)
         _readonly_conn = conn
