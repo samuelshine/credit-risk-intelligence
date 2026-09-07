@@ -5,31 +5,32 @@ completed, when blocked, and whenever the plan changes. If you're picking this
 back up, read **Current task** and **What's next** below; everything else is
 context.
 
-Last updated: 2026-09-07 10:25 (local)
+Last updated: 2026-09-07 15:45 (local)
 
 ---
 
 ## Current phase
 
-**Phases 1-8 are all done.** The full platform — data, EDA, ML, SHAP, rules,
-chatbot, API, and now the UI — has been exercised end to end against the
-real dataset, the real trained model, and the live Gemini API, including a
-Chrome-driven walkthrough of every section with zero console errors. Moving
-into **Phase 9 — Docker & deployment** next.
+**Phases 1-9 are done.** Docker builds and runs the full stack (verified by
+actually building the image and hitting every route through the containers),
+`render.yaml` is written and the Render first-boot ingestion path has been
+verified locally end to end. **Phase 10 (documentation & presentation)** is
+in progress: README, DEPLOYMENT and the executed EDA notebook are committed;
+`docs/PROMPTS.md` and `documents/project_presentation.pdf` are being written
+in parallel.
 
 ## Current task
 
-Starting the `Dockerfile` and `docker-compose.yml` — the `etl` → `api`
-two-service setup described in the plan.
+Waiting on the two parallel documentation workstreams, then a final
+consistency pass over every doc, and the live Render deploy (needs the user
+to authorise Render in the browser).
 
 ## What's next (in order)
 
-1. `Dockerfile`, `docker-compose.yml`, verify `docker compose up` from a clean state
-2. `render.yaml` + Render deployment, verify the live URL
-3. `docs/DEPLOYMENT.md` — local + Render instructions, cost note
-4. `docs/PROMPTS.md` — write up using the real transcripts and token counts already captured this session
-5. `notebooks/eda.py`/`.ipynb` (small remaining Phase 2 item, low priority)
-6. Final README + presentation PDF (Phase 10)
+1. `docs/PROMPTS.md` (in progress) - measured token numbers and real transcripts
+2. `documents/project_presentation.pdf` (in progress) - deck with real app screenshots
+3. Live Render deploy via the Blueprint deeplink, then slot the URL into the README
+4. Final consistency pass across README / MODEL_CARD / EDA_FINDINGS / PROMPTS / DEPLOYMENT
 
 ## Blockers
 
@@ -142,6 +143,28 @@ page rather than only its source:
     elements with a CSS border-left separator (real spacing, not a
     punctuation mark) where it was genuinely tabular metadata.
 
+## Real bugs found during Phase 9 (Docker & deployment), found by actually
+building the image and running the containers - not by reading the config:
+
+16. **Both compose services declaring `build:` for the same image tag raced.**
+    Compose v5's parallel builder tried to export and tag
+    `credit-risk-platform:latest` from two services at once; the second
+    failed with `image "docker.io/library/credit-risk-platform:latest":
+    already exists`. Fixed by having only `etl` build the shared image and
+    `api` reference it by name.
+17. **`database_exists()` checked file existence, which is not readiness.**
+    DuckDB creates the `.duckdb` file the instant a connection opens, long
+    before tables are populated - so during a rebuild the API reported the
+    database as available and a request got a raw 500
+    (`CatalogException: bureau_balance does not exist`). This is precisely
+    the Render first-boot shape the design already anticipated for `/health`,
+    but the other routes had not been considered. Fixed with a `.ready`
+    marker written only after a full verified build and cleared at the start
+    of every build; re-verified by rerunning the exact concurrent scenario
+    and watching clean 503s throughout the build, then a no-restart
+    transition to working once it completed. Side benefit: an interrupted
+    build no longer looks complete to the next run.
+
 ## Real data, confirmed
 
 - ETL run against the actual Kaggle files: all 8 data tables' row counts match
@@ -207,8 +230,8 @@ rest — worth being honest about in the final documentation.
 | 6 — Talk-to-data | ✅ done, live-tested against real Gemini API |
 | 7 — FastAPI service | ✅ done, real server hit with real curl requests |
 | 8 — Frontend | ✅ done, Chrome-walkthrough tested end to end |
-| 9 — Docker & deployment | 🔵 starting now |
-| 10 — Documentation & presentation | 🔵 in progress (TASKS/PROGRESS/EDA_FINDINGS/MODEL_CARD/DESIGN done; README etc. pending) |
+| 9 — Docker & deployment | ✅ compose verified end to end; render.yaml written, first-boot path verified locally; live deploy pending user auth |
+| 10 — Documentation & presentation | 🔵 in progress (README, DEPLOYMENT, DESIGN, MODEL_CARD, EDA_FINDINGS, notebook done; PROMPTS.md + presentation PDF in flight) |
 
 ## Test suite state
 
