@@ -1,0 +1,869 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AI-Powered Credit Risk Intelligence Platform</title>
+<style>
+  @page { size: 1280px 720px; margin: 0; }
+
+  :root {
+    --paper: #FFFFFF;
+    --wash: #F4F7F9;
+    --ink: #14232E;
+    --slate: #5A6E7A;
+    --hairline: #C9D4DB;
+    --accent: #2F5D8A;
+    --low: #2F6F6A;
+    --med: #B8863B;
+    --high: #9E2B3E;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: #fff;
+    color: var(--ink);
+    font-family: "IBM Plex Sans", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .slide {
+    width: 1280px; height: 720px;
+    padding: 46px 62px 58px;
+    page-break-after: always;
+    break-after: page;
+    position: relative;
+    overflow: hidden;
+    background: var(--paper);
+    display: flex; flex-direction: column;
+  }
+  .slide:last-child { page-break-after: auto; break-after: auto; }
+
+  /* running foot */
+  .foot {
+    position: absolute; left: 62px; right: 62px; bottom: 20px;
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 11px; color: var(--slate);
+    border-top: 1px solid var(--hairline); padding-top: 8px;
+  }
+  .foot .n { font-variant-numeric: tabular-nums; }
+
+  h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 30px; line-height: 1.15; font-weight: 600;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+  .eyebrow {
+    font-size: 11.5px; color: var(--accent); font-weight: 600;
+    margin: 0 0 10px; letter-spacing: 0.04em;
+  }
+  .deck { font-size: 14.5px; color: var(--slate); line-height: 1.5; max-width: 105ch; margin: 0 0 16px; }
+  .body { font-size: 13.5px; line-height: 1.55; }
+
+  .rule { height: 2px; background: var(--ink); width: 52px; margin: 10px 0 16px; }
+
+  /* ---------- title slide ---------- */
+  .title-slide { justify-content: center; padding-left: 96px; padding-right: 96px; }
+  .title-slide h1 { font-size: 52px; line-height: 1.08; max-width: 20ch; margin-bottom: 18px; }
+  .title-sub { font-size: 18px; color: var(--slate); line-height: 1.5; max-width: 70ch; }
+  .title-meta {
+    margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--hairline);
+    display: flex; gap: 52px; font-size: 13px;
+  }
+  .title-meta div span { display: block; color: var(--slate); font-size: 11px; margin-bottom: 3px; }
+  .title-meta div b { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* ---------- generic layout helpers ---------- */
+  .cols { display: flex; gap: 30px; flex: 1; min-height: 0; }
+  .col { flex: 1; min-width: 0; }
+  .grow { flex: 1; min-height: 0; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 26px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 22px; }
+
+  /* numbered need/module cards */
+  .item { display: flex; gap: 12px; align-items: flex-start; }
+  .item .num {
+    font-family: Georgia, serif; font-size: 20px; color: var(--accent);
+    line-height: 1; width: 24px; flex: none; font-variant-numeric: tabular-nums;
+  }
+  .item .t { font-size: 13.5px; font-weight: 600; margin: 0 0 3px; }
+  .item .d { font-size: 12.5px; color: var(--slate); line-height: 1.45; margin: 0; }
+
+  /* stat blocks */
+  .stats { display: flex; gap: 0; border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); }
+  .stat { flex: 1; padding: 14px 18px; border-right: 1px solid var(--hairline); }
+  .stat:last-child { border-right: 0; }
+  .stat b {
+    display: block; font-family: Georgia, serif; font-size: 27px; font-weight: 600;
+    line-height: 1.1; font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
+  }
+  .stat span { display: block; font-size: 11.5px; color: var(--slate); margin-top: 5px; line-height: 1.35; }
+
+  /* tables */
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th {
+    text-align: left; font-weight: 600; font-size: 11px; color: var(--slate);
+    padding: 6px 10px 6px 0; border-bottom: 1px solid var(--ink);
+  }
+  td { padding: 6px 10px 6px 0; border-bottom: 1px solid var(--hairline); font-variant-numeric: tabular-nums; }
+  td.num, th.num { text-align: right; padding-right: 0; }
+  tr.hl td { background: #EEF3F7; font-weight: 600; }
+  tr.hl td:first-child { box-shadow: inset 3px 0 0 var(--accent); padding-left: 8px; }
+
+  /* charts + screenshots */
+  figure { margin: 0; }
+  .shot {
+    border: 1px solid var(--hairline); background: var(--wash);
+    display: block; width: 100%; height: auto;
+  }
+  .chart { display: block; width: 100%; height: auto; }
+  figcaption { font-size: 11px; color: var(--slate); margin-top: 6px; line-height: 1.4; }
+
+  /* callout */
+  .callout {
+    background: var(--wash); border-left: 3px solid var(--accent);
+    padding: 12px 16px; font-size: 13px; line-height: 1.5;
+  }
+  .callout.warn { border-left-color: var(--high); }
+  .callout b { font-weight: 600; }
+
+  .sowhat { font-size: 13px; line-height: 1.5; }
+  .sowhat b { color: var(--accent); }
+
+  ul.tight { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.55; }
+  ul.tight li { margin-bottom: 7px; }
+  ul.tight li b { font-weight: 600; }
+
+  .mono { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 11.5px; }
+
+  .tag {
+    display: inline-block; font-size: 10.5px; padding: 2px 7px; border-radius: 2px;
+    background: var(--wash); color: var(--slate); border: 1px solid var(--hairline);
+  }
+  .tag.hi { color: var(--high); border-color: #E3C2C9; background: #FBF2F4; }
+  .tag.lo { color: var(--low); border-color: #BFD8D5; background: #F0F6F5; }
+
+  /* architecture diagram */
+  .arch { display: flex; flex-direction: column; gap: 10px; flex: 1; justify-content: center; }
+  .lane { display: flex; align-items: stretch; gap: 8px; }
+  .lane-label {
+    width: 96px; flex: none; font-size: 10.5px; color: var(--slate);
+    display: flex; align-items: center; font-weight: 600;
+    border-right: 1px solid var(--hairline); padding-right: 10px;
+  }
+  .box {
+    border: 1px solid var(--hairline); background: var(--paper);
+    padding: 8px 11px; font-size: 12px; line-height: 1.3; border-radius: 2px;
+    display: flex; flex-direction: column; justify-content: center; min-height: 46px;
+  }
+  .box b { display: block; font-weight: 600; font-size: 12px; }
+  .box i { font-style: normal; display: block; font-size: 10.5px; color: var(--slate); margin-top: 2px; }
+  .box.accent { border-color: var(--accent); border-width: 1.5px; background: #F4F8FB; }
+  .box.llm { border-color: var(--med); background: #FBF7F0; border-style: dashed; }
+  .arrow { display: flex; align-items: center; color: var(--hairline); font-size: 15px; flex: none; }
+  .flex1 { flex: 1; }
+
+  /* band bar */
+  .bands { display: flex; height: 34px; border: 1px solid var(--hairline); }
+  .band { display: flex; align-items: center; justify-content: center; font-size: 11.5px; color: #fff; font-weight: 600; }
+  .band.h { background: var(--high); }
+  .band.m { background: var(--med); }
+  .band.l { background: var(--low); }
+  .bandkey { display: flex; margin-top: 6px; font-size: 11px; color: var(--slate); }
+</style>
+</head>
+<body>
+
+<!-- ============================================ 1. TITLE -->
+<section class="slide title-slide">
+  <p class="eyebrow">Machine Learning &amp; Applied AI — Project Presentation</p>
+  <h1>AI-Powered Credit Risk Intelligence Platform</h1>
+  <p class="title-sub">
+    An end-to-end credit decisioning system on the Home Credit Default Risk dataset:
+    it scores an applicant's probability of default, explains the score in plain
+    English, states the policy rules behind it, and answers questions about the
+    portfolio in natural language.
+  </p>
+  <div class="title-meta">
+    <div><span>Dataset</span><b>Home Credit Default Risk (Kaggle)</b></div>
+    <div><span>Scale</span><b>58,490,112 rows across 8 tables</b></div>
+    <div><span>Labelled applications</span><b>307,511 &nbsp;·&nbsp; 8.073% default</b></div>
+    <div><span>Holdout ROC-AUC</span><b>0.78989</b></div>
+  </div>
+  <div class="foot"><span>Home Credit Default Risk</span><span class="n">1</span></div>
+</section>
+
+<!-- ============================================ 2. BUSINESS PROBLEM -->
+<section class="slide">
+  <p class="eyebrow">The problem</p>
+  <h1>A lender needs decisions that are fast, accurate, <em>and</em> defensible</h1>
+  <div class="rule"></div>
+  <p class="deck">
+    In this dataset 8.073% of applicants default — roughly 1 in 12. Approving those
+    loans costs written-off principal; refusing good applicants costs revenue.
+    An underwriting desk therefore has six needs that a bare accuracy score does not meet.
+  </p>
+  <div class="grid2 grow" style="align-content:start; row-gap:18px;">
+    <div class="item"><span class="num">1</span><div>
+      <p class="t">Identify high-risk applicants early</p>
+      <p class="d">Rank the book by risk before a human reads a file, so limited review capacity lands where losses actually are.</p></div></div>
+    <div class="item"><span class="num">2</span><div>
+      <p class="t">Automate the risk score itself</p>
+      <p class="d">A calibrated probability per application, produced in one request, not a spreadsheet exercise per file.</p></div></div>
+    <div class="item"><span class="num">3</span><div>
+      <p class="t">Give a reason, not just a number</p>
+      <p class="d">A declined applicant must be told which factors drove the decision, in language a non-analyst can act on.</p></div></div>
+    <div class="item"><span class="num">4</span><div>
+      <p class="t">Stand up to audit and regulation</p>
+      <p class="d">Every figure traceable to a query or an artifact; the model's own limitations recorded rather than omitted.</p></div></div>
+    <div class="item"><span class="num">5</span><div>
+      <p class="t">Let non-technical staff query the data</p>
+      <p class="d">A credit officer with a question about the portfolio should not need to file a ticket with an analyst.</p></div></div>
+    <div class="item"><span class="num">6</span><div>
+      <p class="t">Bridge the model into credit policy</p>
+      <p class="d">A gradient-boosted ensemble cannot be written into a policy manual. A short list of measured rules can.</p></div></div>
+  </div>
+  <div class="foot"><span>The business problem</span><span class="n">2</span></div>
+</section>
+
+<!-- ============================================ 3. WHAT WAS BUILT -->
+<section class="slide">
+  <p class="eyebrow">Scope</p>
+  <h1>Six modules, one running application</h1>
+  <div class="rule"></div>
+  <div class="cols">
+    <div class="col" style="flex:1.08; display:flex; flex-direction:column; gap:16px">
+      <div class="item"><span class="num">1</span><div>
+        <p class="t">Data pipeline</p>
+        <p class="d">Kaggle download → DuckDB ingest of all 8 tables, with row counts verified against Kaggle's published figures on every build. 78.4s, 2.37 GB database.</p></div></div>
+      <div class="item"><span class="num">2</span><div>
+        <p class="t">Exploratory analysis</p>
+        <p class="d">Six data-quality checks and eight business insights, each backed by its own SQL query and rendered chart — no hand-typed numbers.</p></div></div>
+      <div class="item"><span class="num">3</span><div>
+        <p class="t">Risk model</p>
+        <p class="d">LightGBM over 205 features (122 raw + 83 engineered in SQL), isotonic-calibrated, with a four-way imbalance comparison behind the configuration.</p></div></div>
+      <div class="item"><span class="num">4</span><div>
+        <p class="t">Explainability</p>
+        <p class="d">SHAP TreeExplainer per applicant, turned into a 2–4 sentence narrative grounded strictly on the computed contributions.</p></div></div>
+      <div class="item"><span class="num">5</span><div>
+        <p class="t">Business rules</p>
+        <p class="d">A depth-4 surrogate tree distils the model into 16 IF-THEN rules, each with its measured population share and observed default rate.</p></div></div>
+      <div class="item"><span class="num">6</span><div>
+        <p class="t">Talk-to-data chatbot</p>
+        <p class="d">Natural-language question → generated SQL → AST validation → read-only execution → an answer written only from the returned rows.</p></div></div>
+      <div class="callout" style="margin-top:2px; font-size:12.5px">
+        All six are served by one FastAPI process that also hosts the UI — one image,
+        one port, identical behaviour locally and in Docker.
+      </div>
+    </div>
+    <div class="col" style="flex:0.92; display:flex; align-items:center">
+      <figure>
+        <img class="shot" src="screenshots/01_portfolio.jpg" alt="The portfolio section of the running application">
+        <figcaption>The running application. Five sections in one working surface,
+        matching the five parts of the problem — the portfolio, scoring, the
+        explanation, the policy rules, and the chatbot.</figcaption>
+      </figure>
+    </div>
+  </div>
+  <div class="foot"><span>What was built</span><span class="n">3</span></div>
+</section>
+
+<!-- ============================================ 4. ARCHITECTURE -->
+<section class="slide">
+  <p class="eyebrow">Architecture</p>
+  <h1>From Kaggle CSVs to a served, explained decision</h1>
+  <div class="rule"></div>
+
+  <div class="arch">
+    <div class="lane">
+      <div class="lane-label">Offline<br>pipeline</div>
+      <div class="box" style="width:150px"><b>Kaggle CSVs</b><i>8 files, 2.68 GB</i></div>
+      <div class="arrow">→</div>
+      <div class="box" style="width:158px"><b>DuckDB</b><i>58,490,112 rows<br>row counts verified</i></div>
+      <div class="arrow">→</div>
+      <div class="box" style="width:172px"><b>Feature SQL</b><i>122 raw + 83 engineered<br>= 205 features</i></div>
+      <div class="arrow">→</div>
+      <div class="box accent flex1"><b>LightGBM + isotonic calibrator</b><i>80/20 stratified holdout · 5-fold CV model &amp; imbalance selection</i></div>
+    </div>
+
+    <div class="lane">
+      <div class="lane-label">Artifacts</div>
+      <div class="box flex1" style="flex-direction:row; gap:22px; align-items:center; background:var(--wash)">
+        <span class="mono">model.txt</span><span class="mono">calibrator.pkl</span><span class="mono">metrics.json</span>
+        <span class="mono">bands.json</span><span class="mono">rules.json</span><span class="mono">shap_global.json</span>
+        <span class="mono">eda_artifacts.json</span><span class="mono">charts/*.png</span>
+      </div>
+    </div>
+
+    <div class="lane">
+      <div class="lane-label">Serving<br>FastAPI</div>
+      <div class="box flex1"><b>/api/eda</b><i>summary, quality,<br>8 insights</i></div>
+      <div class="box flex1"><b>/api/score</b><i>probability,<br>band, ruler</i></div>
+      <div class="box flex1"><b>/api/explain</b><i>SHAP factors<br>+ narrative</i></div>
+      <div class="box flex1"><b>/api/rules</b><i>16 surrogate<br>rules</i></div>
+      <div class="box flex1"><b>/api/ask</b><i>NL → SQL →<br>grounded answer</i></div>
+      <div class="box accent flex1"><b>Static UI</b><i>one page,<br>five sections</i></div>
+    </div>
+
+    <div class="lane">
+      <div class="lane-label">External</div>
+      <div class="box llm flex1"><b>Gemini</b><i>two roles only: writing SQL from a pruned schema card, and writing prose from computed numbers. It never sees the database, and never produces a score.</i></div>
+      <div class="box flex1" style="width:290px"><b>Read-only DuckDB connection</b><i>external access disabled, row- and time-bounded</i></div>
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top:12px">
+    The model is <b>never</b> in the LLM's path. Scores, SHAP values, bands and rules are all
+    computed numerically; the LLM only renders them into sentences.
+  </div>
+  <div class="foot"><span>Architecture</span><span class="n">4</span></div>
+</section>
+
+<!-- ============================================ 5. THE DATA -->
+<section class="slide">
+  <p class="eyebrow">The data</p>
+  <h1>Eight tables, 58.5 million rows, one label</h1>
+  <div class="rule"></div>
+  <div class="cols">
+    <div class="col" style="flex:1.35">
+      <table>
+        <thead><tr><th>Table</th><th class="num">Rows</th><th class="num">Cols</th><th style="padding-left:14px">What it holds</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td>application_train</td><td class="num">307,511</td><td class="num">122</td><td style="padding-left:14px">Applications with the TARGET label</td></tr>
+          <tr><td>application_test</td><td class="num">48,744</td><td class="num">121</td><td style="padding-left:14px">Unlabelled held-out applications</td></tr>
+          <tr><td>bureau</td><td class="num">1,716,428</td><td class="num">17</td><td style="padding-left:14px">Prior credits at other institutions</td></tr>
+          <tr><td>bureau_balance</td><td class="num">27,299,925</td><td class="num">3</td><td style="padding-left:14px">Monthly status on those credits</td></tr>
+          <tr><td>previous_application</td><td class="num">1,670,214</td><td class="num">37</td><td style="padding-left:14px">Earlier applications to this lender</td></tr>
+          <tr><td>installments_payments</td><td class="num">13,605,401</td><td class="num">8</td><td style="padding-left:14px">Scheduled vs. actual repayments</td></tr>
+          <tr><td>credit_card_balance</td><td class="num">3,840,312</td><td class="num">23</td><td style="padding-left:14px">Monthly credit-card balances</td></tr>
+          <tr><td>pos_cash_balance</td><td class="num">10,001,358</td><td class="num">8</td><td style="padding-left:14px">Monthly POS / cash balances</td></tr>
+        </tbody>
+      </table>
+      <p class="body" style="color:var(--slate); font-size:12px; margin-top:10px">
+        58,489,893 data rows plus a 219-row Kaggle column glossary = <b>58,490,112</b>.
+        Every count matches Kaggle's published figures, re-verified on each build.
+        Only <b>application_train</b> carries a label; the other seven contribute
+        per-client aggregates as engineered features.
+      </p>
+    </div>
+    <div class="col" style="flex:0.85">
+      <div class="stats" style="flex-direction:column; border-left:1px solid var(--hairline)">
+        <div class="stat" style="border-right:0; border-bottom:1px solid var(--hairline)">
+          <b>307,511</b><span>labelled applications</span></div>
+        <div class="stat" style="border-right:0; border-bottom:1px solid var(--hairline)">
+          <b>8.073%</b><span>default rate — roughly 1 applicant in 12</span></div>
+        <div class="stat" style="border-right:0; border-bottom:1px solid var(--hairline)">
+          <b>11.4 : 1</b><span>class imbalance, the central modelling constraint</span></div>
+        <div class="stat" style="border-right:0">
+          <b>205</b><span>features: 122 raw application columns plus 83 engineered in SQL</span></div>
+      </div>
+      <div class="callout" style="margin-top:16px; font-size:12.5px">
+        At 11.4:1, <b>accuracy is meaningless</b> — predicting "no default" for
+        everyone scores about 92%. Every model decision in this project is made on
+        <b>PR-AUC</b> instead.
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>The data</span><span class="n">5</span></div>
+</section>
+
+<!-- ============================================ 6. DATA QUALITY -->
+<section class="slide">
+  <p class="eyebrow">Data quality</p>
+  <h1>Six checks, run against the live database</h1>
+  <div class="rule"></div>
+  <div class="cols">
+    <div class="col" style="flex:1.15">
+      <ul class="tight" style="font-size:12.5px">
+        <li><b>DAYS_EMPLOYED sentinel.</b> 55,374 rows (<b>18.0%</b>) carry 365243 — 1,000 years — meaning "not employed", not a tenure. Left alone it would dominate any split on employment length. Mapped to NULL, with the fact kept as FLAG_NOT_EMPLOYED.</li>
+        <li><b>CODE_GENDER = 'XNA'.</b> 4 rows. Negligible in volume, but an unhandled category would silently become its own one-hot column.</li>
+        <li><b>AMT_INCOME_TOTAL outlier.</b> Maximum 117,000,000 against a median of 147,150 — a <b>795x</b> ratio, one applicant, almost certainly a data-entry artefact. Handled by tree splits, which are scale-immune, rather than by deleting the row.</li>
+        <li><b>DAYS_* sign convention.</b> All 4 non-DAYS_EMPLOYED date-offset columns checked for unexpected positive values. <span class="tag lo">none found</span></li>
+        <li><b>Building-statistics missingness.</b> The 42-column housing block is <b>48.8%–69.9%</b> missing. Not random — it is absent for applicants whose housing type has no building record. Missingness is itself informative, so it is left as NaN for LightGBM rather than imputed.</li>
+        <li><b>Class imbalance.</b> 8.07% positive, 11.4:1 — addressed with the documented four-way comparison on slide 10.</li>
+      </ul>
+    </div>
+    <div class="col" style="flex:0.85; display:flex; flex-direction:column; justify-content:center">
+      <figure>
+        <img class="chart" src="../models/charts/missing_values.png" alt="Missing values by column">
+        <figcaption>Top columns by missingness. Every one belongs to the same
+        housing-detail block — which is why the fix is a modelling decision
+        (native NaN handling), not imputation.</figcaption>
+      </figure>
+    </div>
+  </div>
+  <div class="foot"><span>Data quality</span><span class="n">6</span></div>
+</section>
+
+<!-- ============================================ 7. INSIGHT 1 -->
+<section class="slide">
+  <p class="eyebrow">Business insight 1 of 3</p>
+  <h1>External credit score is the strongest single signal in the dataset</h1>
+  <div class="rule"></div>
+  <div class="cols" style="align-items:center">
+    <div class="col" style="flex:1.3">
+      <figure><img class="chart" src="../models/charts/ext_source_decile.png" alt="Default rate by EXT_SOURCE_2 decile"></figure>
+    </div>
+    <div class="col" style="flex:0.9">
+      <div class="stats" style="flex-direction:column; border-left:1px solid var(--hairline); margin-bottom:16px">
+        <div class="stat" style="border-right:0; border-bottom:1px solid var(--hairline)">
+          <b style="color:var(--high)">18.4%</b><span>default rate, bottom EXT_SOURCE_2 decile</span></div>
+        <div class="stat" style="border-right:0; border-bottom:1px solid var(--hairline)">
+          <b style="color:var(--low)">3.0%</b><span>default rate, top decile</span></div>
+        <div class="stat" style="border-right:0">
+          <b>6.2x</b><span>risk gap across deciles — monotonic, with no dip or reversal anywhere in the curve</span></div>
+      </div>
+      <p class="sowhat"><b>So what:</b> EXT_SOURCE_2 and its siblings should anchor both
+      the model and any manual review process. Few raw application fields separate
+      risk this cleanly on their own — and the SHAP ranking on slide 12 confirms
+      the model reached the same conclusion independently.</p>
+    </div>
+  </div>
+  <div class="foot"><span>Business insights</span><span class="n">7</span></div>
+</section>
+
+<!-- ============================================ 8. INSIGHT 2 -->
+<section class="slide">
+  <p class="eyebrow">Business insight 2 of 3</p>
+  <h1>Overdue debt elsewhere roughly doubles the default rate</h1>
+  <div class="rule"></div>
+  <div class="cols" style="align-items:center">
+    <div class="col" style="flex:1.3">
+      <figure><img class="chart" src="../models/charts/bureau_overdue_vs_default.png" alt="Default rate by presence of overdue bureau credit"></figure>
+    </div>
+    <div class="col" style="flex:0.9">
+      <div class="stats" style="flex-direction:column; border-left:1px solid var(--hairline); margin-bottom:16px">
+        <div class="stat" style="border-right:0; border-bottom:1px solid var(--hairline)">
+          <b style="color:var(--high)">16.2%</b><span>default rate — any overdue balance on a bureau-reported credit</span></div>
+        <div class="stat" style="border-right:0; border-bottom:1px solid var(--hairline)">
+          <b style="color:var(--low)">7.6%</b><span>default rate — no overdue bureau credit</span></div>
+        <div class="stat" style="border-right:0">
+          <b>2.1x</b><span>relative risk, against a portfolio base rate of 8.07%</span></div>
+      </div>
+      <p class="sowhat"><b>So what:</b> bureau data surfaces problems that are invisible
+      to the application form alone — obligations already in trouble at another
+      lender. This is the clearest argument in the analysis for joining the child
+      tables at all rather than modelling the application form on its own.</p>
+    </div>
+  </div>
+  <div class="foot"><span>Business insights</span><span class="n">8</span></div>
+</section>
+
+<!-- ============================================ 9. INSIGHT 3 -->
+<section class="slide">
+  <p class="eyebrow">Business insight 3 of 3</p>
+  <h1>Loan burden and default are <em>not</em> a straight line</h1>
+  <div class="rule"></div>
+  <div class="cols" style="align-items:center">
+    <div class="col" style="flex:1.3">
+      <figure><img class="chart" src="../models/charts/loan_burden_vs_default.png" alt="Default rate by credit-to-income quintile"></figure>
+    </div>
+    <div class="col" style="flex:0.9">
+      <div class="stats" style="flex-direction:column; border-left:1px solid var(--hairline); margin-bottom:14px">
+        <div class="stat" style="border-right:0; border-bottom:1px solid var(--hairline)">
+          <b style="color:var(--high)">8.9%</b><span>default rate, <b>middle</b> quintile — average credit at 3.3x income</span></div>
+        <div class="stat" style="border-right:0">
+          <b>7.3%</b><span>default rate, <b>heaviest</b> quintile — average credit at 8.2x income</span></div>
+      </div>
+      <p class="sowhat"><b>So what:</b> the most heavily indebted applicants are
+      <em>not</em> the riskiest ones. A naive "flag high credit-to-income ratio"
+      policy rule would miss the actual riskiest segment entirely.</p>
+      <div class="callout" style="margin-top:12px; font-size:12.5px">
+        This finding also caught a real bug: the insight function originally assumed
+        the relationship was monotonic and read the riskiest quintile off the end of
+        the sorted list. Both this and a reversed EXT_SOURCE lift calculation are now
+        covered by regression tests with known, checkable answers.
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>Business insights</span><span class="n">9</span></div>
+</section>
+
+<!-- ============================================ 10. ML APPROACH + IMBALANCE -->
+<section class="slide">
+  <p class="eyebrow">Machine learning</p>
+  <h1>Model choice, and the imbalance experiment</h1>
+  <div class="rule"></div>
+  <div class="cols">
+    <div class="col" style="flex:1">
+      <p class="body" style="margin:0 0 12px"><b>Why LightGBM.</b> At ~307k rows and 205 mixed
+      numeric/categorical features, gradient-boosted trees are the established
+      strong baseline for tabular data at this scale — no GPU, minutes to train.
+      LightGBM specifically for native NaN handling (the missingness here is
+      informative, not random) and native categorical support, which avoids a
+      58-level one-hot expansion of ORGANIZATION_TYPE.</p>
+
+      <table style="margin-bottom:16px">
+        <thead><tr><th>Model (identical feature set)</th><th class="num">Mean PR-AUC, 5-fold CV</th></tr></thead>
+        <tbody>
+          <tr><td>Logistic Regression (transparent baseline)</td><td class="num">0.2518</td></tr>
+          <tr class="hl"><td>LightGBM (shipped)</td><td class="num">0.2790</td></tr>
+        </tbody>
+      </table>
+      <p class="body" style="margin:0; font-size:12.5px; color:var(--slate)">
+        <b>+10.8% relative</b> over the linear reference — the honest answer to
+        "how much does model choice buy," isolated from the feature-engineering
+        contribution.
+      </p>
+    </div>
+
+    <div class="col" style="flex:1.05">
+      <p class="body" style="margin:0 0 10px"><b>Four imbalance strategies, same CV splits,
+      selected on PR-AUC:</b></p>
+      <table>
+        <thead><tr><th>Strategy</th><th class="num">PR-AUC</th><th class="num">ROC-AUC</th><th class="num">Brier</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td>None (shipped)</td><td class="num">0.2790</td><td class="num">0.7859</td><td class="num">0.0660</td></tr>
+          <tr><td>Random undersampling</td><td class="num">0.2725</td><td class="num">0.7818</td><td class="num" style="color:var(--high)">0.1884</td></tr>
+          <tr><td>SMOTE</td><td class="num">0.2492</td><td class="num">0.7688</td><td class="num">0.0675</td></tr>
+          <tr><td>scale_pos_weight (≈11.4)</td><td class="num" style="color:var(--high)">0.2000</td><td class="num">0.7330</td><td class="num">0.0733</td></tr>
+        </tbody>
+      </table>
+      <div class="callout warn" style="margin-top:14px">
+        <b>None of the three standard imbalance fixes beat training on the data
+        as-is.</b> scale_pos_weight — the one most commonly reached for — is the
+        <em>worst</em> performer here. Undersampling's Brier score of 0.1884, nearly
+        3x worse, shows why: discarding 90% of the majority class destroys the
+        model's sense of how rare a default actually is, so its probabilities become
+        badly overconfident.
+      </div>
+      <p class="body" style="margin:10px 0 0; font-size:12.5px; color:var(--slate)">
+        The shipped model therefore uses <b>no explicit imbalance handling</b>. That
+        is a measured result, not an assumption — and it runs against the common
+        expectation that imbalance always needs correcting.
+      </p>
+    </div>
+  </div>
+  <div class="foot"><span>ML approach &amp; imbalance</span><span class="n">10</span></div>
+</section>
+
+<!-- ============================================ 11. RESULTS -->
+<section class="slide">
+  <p class="eyebrow">Results — holdout, n = 61,503, untouched by training or calibration</p>
+  <h1>What the model is worth to an underwriting desk</h1>
+  <div class="rule"></div>
+
+  <div class="stats" style="margin-bottom:18px">
+    <div class="stat"><b>0.78989</b><span>ROC-AUC</span></div>
+    <div class="stat"><b>0.27939</b><span>PR-AUC — the metric every choice was made on</span></div>
+    <div class="stat"><b>0.44141</b><span>KS statistic</span></div>
+    <div class="stat"><b>0.06537</b><span>Brier score, calibrated (0.06560 raw)</span></div>
+  </div>
+
+  <div class="cols">
+    <div class="col" style="flex:1.05">
+      <p class="body" style="margin:0 0 8px"><b>Risk bands</b>, cut from the calibrated holdout
+      score distribution — not from arbitrary probability thresholds, since a
+      "0.3 cutoff" means nothing on its own at an 8% base rate.</p>
+      <div class="bands">
+        <div class="band l" style="width:50%">Low — 50%</div>
+        <div class="band m" style="width:40%">Medium — 40%</div>
+        <div class="band h" style="width:10%">High — 10%</div>
+      </div>
+      <table style="margin-top:12px">
+        <thead><tr><th>Band</th><th class="num">Population</th><th class="num">Score ≥</th><th class="num">Observed default</th><th class="num">Lift</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag hi">High</span></td><td class="num">10%</td><td class="num">0.1878</td><td class="num">29.9%</td><td class="num">3.7x</td></tr>
+          <tr><td><span class="tag">Medium</span></td><td class="num">40%</td><td class="num">0.0449</td><td class="num">9.7%</td><td class="num">1.2x</td></tr>
+          <tr><td><span class="tag lo">Low</span></td><td class="num">50%</td><td class="num">—</td><td class="num">2.4%</td><td class="num">0.3x</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="col" style="flex:0.95">
+      <p class="body" style="margin:0 0 8px"><b>Lift by decile</b> — the table a credit officer reads.</p>
+      <table>
+        <thead><tr><th>Decile (riskiest first)</th><th class="num">Default rate</th><th class="num">Lift</th><th class="num">Cum. defaulters caught</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td class="num">29.9%</td><td class="num">3.70x</td><td class="num">37.0%</td></tr>
+          <tr><td>2</td><td class="num">16.6%</td><td class="num">2.06x</td><td class="num">57.6%</td></tr>
+          <tr class="hl"><td>3</td><td class="num">10.3%</td><td class="num">1.28x</td><td class="num">70.4%</td></tr>
+          <tr><td>4</td><td class="num">7.1%</td><td class="num">0.88x</td><td class="num">79.3%</td></tr>
+          <tr><td>5</td><td class="num">4.7%</td><td class="num">0.58x</td><td class="num">85.1%</td></tr>
+        </tbody>
+      </table>
+      <div class="callout" style="margin-top:14px">
+        <b>Reviewing the riskiest 30% of applicants catches 70.4% of all eventual
+        defaulters.</b> That is the concrete number behind "prioritise manual review
+        by risk score" — a 3.3x concentration of review effort.
+      </div>
+    </div>
+  </div>
+  <p class="body" style="font-size:11.5px; color:var(--slate); margin:12px 0 0">
+    Operating threshold <b>0.0935</b>, set by minimising expected cost under a
+    stated 10:1 false-negative-to-false-positive cost assumption — not by a 0.5
+    cutoff or by F1, neither of which is meaningful for a lender. Precision 20.0%,
+    recall 67.3% at that threshold.
+  </p>
+  <div class="foot"><span>Results</span><span class="n">11</span></div>
+</section>
+
+<!-- ============================================ 12. EXPLAINABILITY -->
+<section class="slide">
+  <p class="eyebrow">Explainability</p>
+  <h1>Every score comes with its reasons — including the uncomfortable one</h1>
+  <div class="rule"></div>
+  <div class="cols">
+    <div class="col" style="flex:1.15; display:flex; flex-direction:column; gap:12px">
+      <figure>
+        <img class="shot" src="screenshots/02_score_result.jpg" alt="Score result — probability, band and risk ruler">
+        <figcaption>Step 1 — a real applicant scored at 4.5%, placed on the
+        portfolio's own score distribution rather than shown as a bare number.</figcaption>
+      </figure>
+      <figure>
+        <img class="shot" src="screenshots/03_explain.jpg" alt="Why this score — SHAP narrative and push/pull factor chart">
+        <figcaption>Step 2 — the same applicant's SHAP narrative and push/pull
+        factor chart, computed from the same request.</figcaption>
+      </figure>
+    </div>
+    <div class="col" style="flex:0.85">
+      <p class="body" style="margin:0 0 12px">SHAP's <span class="mono">TreeExplainer</span>
+      runs directly on the LightGBM booster. The factors and the score come from
+      the <em>same</em> request, so an explanation can never disagree with the number
+      it explains.</p>
+
+      <p class="body" style="margin:0 0 12px"><b>One distinction, stated because it is easy
+      to get backwards:</b> SHAP explains the model's raw log-odds output, not the
+      calibrated probability shown to the user — calibration is a monotone remap
+      fitted afterwards, with no per-feature decomposition. Contributions are
+      therefore always presented directionally ("pushed the risk up / down"), never
+      as an exact slice of the displayed percentage.</p>
+
+      <p class="body" style="margin:0 0 10px"><b>Top global features</b> by mean |SHAP|:</p>
+      <table style="margin-bottom:14px">
+        <tbody>
+          <tr><td>1 &nbsp; EXT_SOURCE_MEAN</td><td class="num">0.404</td></tr>
+          <tr style="background:#FBF2F4"><td>2 &nbsp; CODE_GENDER</td><td class="num">0.104</td></tr>
+          <tr><td>3 &nbsp; ORGANIZATION_TYPE</td><td class="num">0.099</td></tr>
+          <tr><td>4 &nbsp; CREDIT_GOODS_RATIO</td><td class="num">0.093</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout warn">
+        <b>CODE_GENDER is the model's #2 global feature</b> — ahead of income,
+        credit amount and employment history. Using a protected attribute as a
+        predictor raises real fair-lending concerns. This is <b>recorded as a
+        limitation in the model card, not hidden</b>: a production deployment would
+        need to exclude protected attributes or apply an explicit fairness
+        constraint and audit first.
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>Explainability</span><span class="n">12</span></div>
+</section>
+
+<!-- ============================================ 13. BUSINESS RULES -->
+<section class="slide">
+  <p class="eyebrow">Business rules</p>
+  <h1>The model, distilled into a checklist a policy manual can hold</h1>
+  <div class="rule"></div>
+  <div class="cols">
+    <div class="col" style="flex:1.1">
+      <p class="body" style="margin:0 0 12px">A depth-4 decision tree is fitted to approximate the
+      <em>calibrated score</em> (not the label), then each leaf is reported as an
+      IF-THEN rule. <b>16 rules</b> were extracted, from 36.3% down to 2.6% observed
+      default rate. Every rate below is measured directly against TARGET for the
+      applicants actually in that leaf — not read off the tree's own prediction.</p>
+
+      <div style="border-top:1px solid var(--ink); padding-top:10px">
+        <div style="display:flex; gap:12px; margin-bottom:12px">
+          <span class="item" style="display:block"><span class="num">1</span></span>
+          <div style="flex:1">
+            <p class="body" style="margin:0 0 4px; font-size:12.5px">IF <b>ext-source mean ≤ 0.253</b>
+            AND <b>ext-source min ≤ 0.121</b> AND <b>credit-to-goods ratio &gt; 1.16</b></p>
+            <p class="body" style="margin:0; font-size:12px; color:var(--slate)">
+              → 1.5% of applicants (4,554) &nbsp;·&nbsp; observed default rate
+              <b style="color:var(--high)">36.3%</b> &nbsp;·&nbsp; <b>4.5x</b> base rate</p>
+          </div>
+        </div>
+        <div style="display:flex; gap:12px; margin-bottom:12px">
+          <span class="item" style="display:block"><span class="num">3</span></span>
+          <div style="flex:1">
+            <p class="body" style="margin:0 0 4px; font-size:12.5px">IF <b>ext-source mean ≤ 0.395</b>
+            AND <b>&gt; 0.253</b> AND <b>previous-refusal rate &gt; 0.311</b> AND
+            <b>credit-to-goods ratio &gt; 1.16</b></p>
+            <p class="body" style="margin:0; font-size:12px; color:var(--slate)">
+              → 1.3% of applicants (4,046) &nbsp;·&nbsp; observed default rate
+              <b style="color:var(--high)">23.1%</b> &nbsp;·&nbsp; <b>2.87x</b> base rate</p>
+          </div>
+        </div>
+        <div style="display:flex; gap:12px">
+          <span class="item" style="display:block"><span class="num">4</span></span>
+          <div style="flex:1">
+            <p class="body" style="margin:0 0 4px; font-size:12.5px">IF <b>ext-source mean ≤ 0.253</b>
+            AND <b>ext-source min &gt; 0.121</b> AND <b>years employed ≤ 11.6</b></p>
+            <p class="body" style="margin:0; font-size:12px; color:var(--slate)">
+              → 2.1% of applicants (6,400) &nbsp;·&nbsp; observed default rate
+              <b style="color:var(--high)">22.9%</b> &nbsp;·&nbsp; <b>2.84x</b> base rate</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout warn" style="margin-top:16px">
+        <b>Fidelity, reported rather than assumed.</b> The surrogate reaches
+        R² = <b>0.4885</b> against the calibrated score and ROC-AUC <b>0.7207</b>
+        against the actual label, versus the full model's <b>0.8766</b> on the same
+        data. It captures real, useful structure but is <b>meaningfully simpler than
+        the model it approximates</b> — a readable four-question checklist, not a
+        substitute for the model in a decision that matters.
+      </div>
+    </div>
+    <div class="col" style="flex:0.9; display:flex; align-items:center">
+      <figure>
+        <img class="shot" src="screenshots/04_rules.jpg" alt="Policy rules section of the running application">
+        <figcaption>All 16 rules in the running application, each with its
+        measured population share and lift, and the fidelity caveat stated at
+        the top of the list rather than in a footnote.</figcaption>
+      </figure>
+    </div>
+  </div>
+  <div class="foot"><span>Business rules</span><span class="n">13</span></div>
+</section>
+
+<!-- ============================================ 14. TALK TO DATA -->
+<section class="slide">
+  <p class="eyebrow">Talk-to-data</p>
+  <h1>A plain-English question, an auditable answer</h1>
+  <div class="rule"></div>
+  <div class="cols">
+    <div class="col" style="flex:1.15; display:flex; flex-direction:column">
+      <figure>
+        <img class="shot" src="screenshots/05_ask.jpg" alt="Ask the data section with a real answered question">
+        <figcaption>A real round-trip against the live Gemini API: the question, the
+        answer, the exact SQL that ran, the returned rows, and the token and
+        latency cost — all shown together.</figcaption>
+      </figure>
+    </div>
+    <div class="col" style="flex:0.85">
+      <p class="body" style="margin:0 0 10px"><b>The pipeline</b></p>
+      <div class="arch" style="gap:6px; flex:none; margin-bottom:14px">
+        <div class="box" style="min-height:0; padding:6px 10px"><b>1. Schema card, pruned per question</b><i>Two tiers — every table's purpose and join keys always; full column detail only for tables the question plausibly touches. Deterministic lexical selection, no embeddings.</i></div>
+        <div class="box llm" style="min-height:0; padding:6px 10px"><b>2. Gemini writes SQL</b><i>Sees only columns that exist. Given an explicit way to refuse, so an unanswerable question need not be answered with an invented one.</i></div>
+        <div class="box" style="min-height:0; padding:6px 10px"><b>3. sqlglot AST validation</b><i>Parsed, not regex-matched: one statement, read-only, no filesystem or network functions, every table and column resolved through CTEs and aliases, row limit injected.</i></div>
+        <div class="box" style="min-height:0; padding:6px 10px"><b>4. Read-only DuckDB execution</b><i>External access disabled, row- and time-bounded.</i></div>
+        <div class="box llm" style="min-height:0; padding:6px 10px"><b>5. Gemini writes the answer</b><i>From the returned rows only — the summarising model never sees the database.</i></div>
+      </div>
+      <div class="callout" style="font-size:12.5px">
+        <b>Hallucination control is layered, and each layer catches a different
+        failure.</b> The prompt is not a security control. A rejected query gets
+        exactly <b>one</b> repair attempt with the specific error — a second failure
+        is reported as a failure, not retried until something passes. The SQL is
+        always displayed, so an answer can be checked rather than trusted.
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>Talk-to-data</span><span class="n">14</span></div>
+</section>
+
+<!-- ============================================ 15. DEPLOYMENT -->
+<section class="slide">
+  <p class="eyebrow">Deployment</p>
+  <h1>One image, two services, one command</h1>
+  <div class="rule"></div>
+  <div class="cols">
+    <div class="col" style="flex:1">
+      <div class="arch" style="flex:none; gap:10px; margin-bottom:18px">
+        <div class="lane">
+          <div class="box" style="width:120px"><b>etl</b><i>runs once, exits</i></div>
+          <div class="arrow">→</div>
+          <div class="box flex1"><b>python -m src.data.loader</b><i>Downloads the Kaggle archive (or reads one placed in ./data), ingests all 8 tables into DuckDB, verifies row counts, writes a completion marker.</i></div>
+        </div>
+        <div class="lane">
+          <div class="box accent" style="width:120px"><b>api</b><i>long-running</i></div>
+          <div class="arrow">→</div>
+          <div class="box accent flex1"><b>uvicorn src.api.main:app</b><i>FastAPI serving /api/* and the static UI on port 8000, with a health check.</i></div>
+        </div>
+      </div>
+      <p class="body" style="margin:0 0 8px"><b>To run the whole platform:</b></p>
+      <div class="box" style="background:var(--wash); min-height:0; padding:10px 12px">
+        <span class="mono">cp .env.example .env&nbsp; <span style="color:var(--slate)"># add GOOGLE_API_KEY</span></span>
+        <span class="mono" style="margin-top:4px">docker compose up</span>
+      </div>
+      <p class="body" style="font-size:12px; color:var(--slate); margin-top:12px">
+        Both services share one image. Only <span class="mono">etl</span> declares a
+        build — giving both a build block made Compose's parallel builder race to tag
+        the same image, which was confirmed as a real failure and is documented in
+        the compose file itself.
+      </p>
+    </div>
+
+    <div class="col" style="flex:0.95">
+      <div class="callout" style="margin-bottom:16px">
+        <b>api does not wait on etl.</b> That is deliberate, and it is the property
+        worth demonstrating: the trained model, the rules and the EDA artifacts are
+        already computed and committed, so the app is useful the moment it starts.
+      </div>
+      <table>
+        <thead><tr><th>Capability</th><th>Before ETL completes</th></tr></thead>
+        <tbody>
+          <tr><td>Score a hand-entered applicant</td><td><span class="tag lo">works</span></td></tr>
+          <tr><td>Why this score (SHAP + narrative)</td><td><span class="tag lo">works</span></td></tr>
+          <tr><td>Policy rules</td><td><span class="tag lo">works</span></td></tr>
+          <tr><td>The portfolio (EDA)</td><td><span class="tag lo">works</span></td></tr>
+          <tr><td>Pick a real applicant by id</td><td><span class="tag">clear 503</span></td></tr>
+          <tr><td>Ask the data</td><td><span class="tag">clear 503</span></td></tr>
+        </tbody>
+      </table>
+      <p class="body" style="font-size:12.5px; margin-top:14px">
+        Once <span class="mono">etl</span> finishes, the last two start working on the
+        next request — <b>no restart</b>. The readiness signal is a completion marker
+        written only after row-count verification succeeds, not the existence of the
+        database file: DuckDB creates that file the moment a connection opens, long
+        before the tables are loaded, and a request arriving mid-build was measured
+        surfacing as a raw 500.
+      </p>
+    </div>
+  </div>
+  <div class="foot"><span>Deployment</span><span class="n">15</span></div>
+</section>
+
+<!-- ============================================ 16. LIMITATIONS -->
+<section class="slide">
+  <p class="eyebrow">Honest assessment</p>
+  <h1>Limitations, and what would come next</h1>
+  <div class="rule"></div>
+  <div class="cols">
+    <div class="col">
+      <p class="body" style="margin:0 0 10px; font-weight:600">Known limitations</p>
+      <ul class="tight" style="font-size:12.5px">
+        <li><b>CODE_GENDER is the #2 feature by global mean |SHAP|</b>, ahead of income, credit amount and employment history. A disparate-treatment and disparate-impact review would be required before any production use. This is a technical demonstration, not a compliance-reviewed scoring system.</li>
+        <li><b>The imbalance comparison used 4 well-known techniques at default settings.</b> Cost-sensitive learning, ensemble methods such as BalancedRandomForest, and per-fold threshold tuning were not explored, and could change the "none wins" conclusion.</li>
+        <li><b>The 10:1 false-negative-to-false-positive cost ratio is asserted, not derived</b> from real loan economics. It is a placeholder for whatever a deploying bank would supply — average loan size, cost of manual review, recovery rate on default.</li>
+        <li><b>Surrogate fidelity of R² 0.4885 is moderate.</b> The 16 rules are a useful, auditable summary — not a substitute for the model in a decision that matters.</li>
+        <li><b>No temporal validation.</b> The dataset carries no timestamp for out-of-time testing, so the random holdout split cannot speak to performance on genuinely future applications.</li>
+      </ul>
+    </div>
+    <div class="col">
+      <p class="body" style="margin:0 0 10px; font-weight:600">What would come next</p>
+      <ul class="tight" style="font-size:12.5px">
+        <li>Refit excluding protected attributes and measure the cost in PR-AUC, then decide explicitly whether that cost is acceptable — rather than leaving the current ranking in place by default.</li>
+        <li>Replace the asserted cost ratio with real loan economics and re-derive the operating threshold, which moves with it.</li>
+        <li>Extend the imbalance comparison to cost-sensitive and ensemble methods before treating "none wins" as settled.</li>
+        <li>Source a timestamped application feed to enable out-of-time validation and drift monitoring.</li>
+      </ul>
+
+      <div class="callout" style="margin-top:18px">
+        <b>Every number in this deck is traceable.</b> Metrics come from
+        <span class="mono">models/*.json</span> written by the training run; EDA
+        figures from <span class="mono">models/eda_artifacts.json</span>; charts from
+        <span class="mono">models/charts/</span>; screenshots from the running
+        application against the real dataset, the real trained model and the live
+        Gemini API. Nothing here is asserted without a corresponding artifact.
+      </div>
+
+      <p class="body" style="font-size:12px; color:var(--slate); margin-top:14px">
+        Test suite: 144 tests passing fully offline, plus 5 live API contract
+        tests. 15 real defects were found and fixed by testing against real
+        systems rather than synthetic fixtures.
+      </p>
+    </div>
+  </div>
+  <div class="foot"><span>Limitations &amp; next steps</span><span class="n">16</span></div>
+</section>
+
+</body>
+</html>
